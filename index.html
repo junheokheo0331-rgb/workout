@@ -172,10 +172,12 @@ nav.tabs button.on{color:var(--sky-600)}
 
 /* ── 휴식 타이머 */
 #restbar{
-  position:fixed;left:0;right:0;bottom:0;z-index:60;
-  background:linear-gradient(135deg,var(--sky-600),var(--sky-500));
-  color:#fff;padding:11px 14px calc(11px + var(--safe-b));
-  box-shadow:0 -4px 20px rgba(2,132,199,.35);
+  position:fixed;
+  left:12px;
+  right:12px;
+  bottom:calc(70px + var(--safe-b));
+  z-index:100;
+  border-radius:16px;
 }
 #restbar .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 #restbar .t{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-1px}
