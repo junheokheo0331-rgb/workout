@@ -3,6 +3,30 @@
    ============================================================ */
 'use strict';
 
+// --- [추가] 누락되었던 전역 유틸리티 핵심 함수 정의 ---
+function el(id) { return document.getElementById(id); }
+function esc(str) { 
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function toast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remove()); }
+// ----------------------------------------------------
+
 const RPE_COLS = [10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6];
 const RPE_TABLE = [
   [100.0, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3],
@@ -206,6 +230,9 @@ const App = {
 
   init() {
     Store.load();
+    // 글로벌 윈도우 스코프에 인라인 호출용 바인딩
+    window.App = this;
+    
     this.checkOnboarding();
     document.querySelectorAll('nav.tabs button').forEach(b => {
       b.addEventListener('click', () => this.go(b.dataset.tab));
@@ -240,7 +267,8 @@ const App = {
       <button class="btn" onclick="App.saveOnboarding()">프로필 초기화 완료</button>
     `;
     const m = modal('시스템 초기 파라미터 구성', html);
-    m.removeEventListener('click', closeModal);
+    // [수정] 모달 강제 취소 이벤트 리스너 제거 방식 안전하게 변경
+    m.onclick = null; 
   },
 
   setUnknownSBD() {
@@ -267,10 +295,12 @@ const App = {
     if (!Store.s.user.initialized) return;
     this.tab = tab;
     ['home', 'workout', 'program', 'stats', 'settings'].forEach(t => {
-      el('view' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hide', t !== tab);
+      const targetView = el('view' + t[0].toUpperCase() + t.slice(1));
+      if(targetView) targetView.classList.toggle('hide', t !== tab);
     });
     document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
-    el('hTitle').textContent = tab === 'workout' ? '트레이닝 레코더' : (tab === 'program' ? '자율 루틴 아키텍처' : 'Autoreg PRO');
+    const hTitle = el('hTitle');
+    if(hTitle) hTitle.textContent = tab === 'workout' ? '트레이닝 레코더' : (tab === 'program' ? '자율 루틴 아키텍처' : 'Autoreg PRO');
     this.render();
   },
 
@@ -522,13 +552,18 @@ const App = {
   },
   restStop() { Store.s.timer = null; Store.save(); this.renderRest(); },
   renderRest() {
-    const t = Store.s.timer, bar = el('restbar'); if (!t) { bar.classList.add('hide'); return; }
-    bar.classList.remove('hide');
+    const t = Store.s.timer, bar = el('restbar'); if (!t) { if(bar) bar.classList.add('hide'); return; }
+    if(bar) bar.classList.remove('hide');
     const left = (t.endsAt - Date.now()) / 1000;
     const over = left <= 0;
-    el('restLbl').textContent = over ? `타이머 임계 초과: 다음 데이터 세션 진입 요구` : `제한 휴식 모니터링 [${t.label}]`;
-    el('restT').textContent = over ? '+' + mmss(-left) : mmss(left);
-    el('restProg').style.width = over ? '100%' : Math.max(0, Math.min(100, (1 - left / t.total) * 100)) + '%';
+    
+    const restLbl = el('restLbl');
+    const restT = el('restT');
+    const restProg = el('restProg');
+    
+    if(restLbl) restLbl.textContent = over ? `타이머 임계 초과: 다음 데이터 세션 진입 요구` : `제한 휴식 모니터링 [${t.label}]`;
+    if(restT) restT.textContent = over ? '+' + mmss(-left) : mmss(left);
+    if(restProg) restProg.style.width = over ? '100%' : Math.max(0, Math.min(100, (1 - left / t.total) * 100)) + '%';
   },
   onTick() {
     const t = Store.s.timer;
@@ -627,7 +662,7 @@ const App = {
     let html = '<div class="card"><h2>실시간 추정 최고 출력 지표 (e1RM 피드백)</h2>';
     ['스쿼트', '벤치프레스', '데드리프트'].forEach(lift => {
       const current = Engine.getLatestE1RM(lift);
-      html += `<div style="padding:10px 0; border-bottom:1px solid var(--line); font-size:13px; color:var(--mid);"><b>${lift} 가동 베이스라인:</b> <span style="font-weight:700; color:var(--sky-500); font-size:14px;">${current}kg</span></div>`;
+      html += `<div style="padding:10px 0; border-bottom:1px solid var(--line); font-size:13px; color:var(--mid);"><b>${lift} 가동 베이스라인:</b> <span style="font-weight:700; color:var(--sky-50); font-size:14px; background:var(--sky-500); padding:2px 6px; border-radius:4px;">${current}kg</span></div>`;
     });
     html += '</div>';
 
@@ -639,13 +674,21 @@ const App = {
         Object.entries(h.sets).forEach(([exId, arr]) => {
           const doneSets = arr.filter(s => s.done);
           if (!doneSets.length) return;
+          
+          // 종목 블록명을 찾기 위한 매칭 로직 보완
+          let matchedName = '지정 종목';
+          Store.s.routines.forEach(rt => {
+            const found = rt.items.find(i => i.id === exId);
+            if (found) matchedName = found.name;
+          });
+          
           let details = doneSets.map(s => s.isCardio ? `[대사 임계치 ${s.cardioMin}분 완료]` : `${s.w}kg × ${s.reps}회 (RIR ${s.rir})`).join(', ');
-          rows += `<div style="font-size:13px; padding:6px 0; color:var(--mid);">• <b>종목 블록:</b> ${details}</div>`;
+          rows += `<div style="font-size:13px; padding:6px 0; color:var(--mid);">• <b>${esc(matchedName)}:</b> ${details}</div>`;
         });
         html += `
           <div class="card">
             <h2 style="font-size:14px; color:var(--sky-900); font-weight:700;">세션 레코드 스탬프: ${h.date} — ${esc(h.title)}</h2>
-            <div class="tiny" style="margin-bottom:8px;">총 임계 타임: ${mmss(h.duration)}</div>
+            <div class="tiny" style="margin-bottom:8px; color:var(--soft);">총 임계 타임: ${mmss(h.duration)}</div>
             <div style="padding-left:4px;">${rows}</div>
           </div>
         `;
@@ -672,6 +715,5 @@ function modal(title, html) {
   document.body.appendChild(m);
   return m;
 }
-function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remove()); }
 
 window.addEventListener('DOMContentLoaded', () => { App.init(); });
