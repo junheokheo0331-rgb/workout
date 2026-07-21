@@ -71,11 +71,30 @@ main{padding:14px 14px calc(96px + var(--safe-b));max-width:760px;margin:0 auto}
 .muted{color:var(--mid);font-size:12.5px}
 .tiny{font-size:11px;color:var(--soft)}
 
-/* ── 월간 및 주간 캘린더 */
+/* ── 월간 및 주간 캘린더 (과거 선택 가능) */
 .monthly-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; margin-bottom: 4px; }
-.m-day { text-align: center; font-size: 12px; padding: 6px 0; border-radius: 50%; color: var(--mid); }
+.m-day { text-align: center; font-size: 12px; padding: 6px 0; border-radius: 50%; color: var(--mid); cursor: pointer; }
+.m-day:hover { background-color: var(--sky-100); }
 .m-day.done { background-color: var(--sky-200); color: var(--sky-900); font-weight: 800; }
 .m-day.today { border: 1.5px solid var(--sky-400); font-weight: 800; color: var(--sky-700); }
+
+.weekbar{display:flex;gap:6px}
+.daycell{
+  flex:1;text-align:center;padding:9px 2px 8px;border-radius:12px;
+  background:var(--sky-50);border:1.5px solid transparent;position:relative;min-width:0; cursor:pointer;
+}
+.daycell .dw{font-size:10.5px;color:var(--mid);font-weight:700}
+.daycell .dd{font-size:16px;font-weight:800;margin-top:2px}
+.daycell .tag{font-size:9px;color:var(--sky-600);font-weight:700;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daycell.today{background:var(--sky-500);border-color:var(--sky-600)}
+.daycell.today .dw,.daycell.today .dd,.daycell.today .tag{color:#fff}
+.daycell.done{background-color: var(--sky-200); border-color: var(--sky-300);}
+.daycell.done .dw, .daycell.done .dd, .daycell.done .tag { color: var(--sky-900); }
+.daycell.rest{opacity:.55}
+.weeknav{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.weeknav b{font-size:13px;color:var(--sky-700)}
+.navb{padding:4px 10px;border-radius:8px;background:var(--sky-100);color:var(--sky-700);font-weight:800}
 
 /* ── 루틴 템플릿 카드 */
 .routine-card {
