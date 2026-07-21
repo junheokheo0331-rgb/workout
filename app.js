@@ -368,11 +368,15 @@ const App = {
     Store.load();
     this.restore();
     
-    // 1회 초기 셋업 모달 호출 및 스플래시 제어
+    // 초기 셋업 로직 및 스플래시 화면 제어
     const splash = el('splashScreen');
+    const splashBtn = el('splashBtn');
+    
     if (Store.s.settings.isFirstRun) {
-      setTimeout(() => this.showInitialSetup(), 1500);
+      // 첫 접속 시에는 명시적인 버튼을 보여줘서 사용자가 다음 단계(기본세팅)로 넘어가게 만듦
+      if (splashBtn) splashBtn.style.display = 'block';
     } else {
+      // 이후 접속 시에는 자동으로 스플래시 페이드아웃
       if (splash) setTimeout(() => splash.classList.add('hide-splash'), 800);
     }
 
@@ -388,10 +392,20 @@ const App = {
     this.go('home');
   },
   
+  // 스플래시에서 시작하기 버튼을 눌렀을 때 호출
+  startFromSplash() {
+    const splash = el('splashScreen');
+    if (splash) splash.classList.add('hide-splash');
+    
+    if (Store.s.settings.isFirstRun) {
+      setTimeout(() => this.showInitialSetup(), 400); // 스플래시가 부드럽게 사라진 후 모달 오픈
+    }
+  },
+  
   showInitialSetup() {
     const html = `
       <div style="text-align:center; margin-bottom:12px; font-size:13px; color:var(--mid);">
-        유료앱 쓰다 열받아서 직접 만든 앱에 오신 것을 환영합니다.<br>초기 1회 세팅을 진행해주세요.
+        기본 세팅을 위해 정보를 입력해주세요.
       </div>
       <div class="grid2">
         <div class="field"><label>나이 (카르보넨 계산용)</label>
@@ -407,7 +421,7 @@ const App = {
         <input id="initDl" type="number" placeholder="0"></div>
       <button class="btn" style="margin-top:16px;" onclick="App.saveInitialSetup()">완료 및 시작하기</button>
     `;
-    modal('초기 세팅', html);
+    modal('유료어플쓰다열받아서만든어플', html);
   },
 
   saveInitialSetup() {
@@ -421,8 +435,6 @@ const App = {
     
     Store.save();
     closeModal();
-    const splash = el('splashScreen');
-    if(splash) splash.classList.add('hide-splash');
     this.render();
   },
 
