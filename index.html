@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>유료운동어플쓰다열받아서만들어플</title>
+<title>유료어플쓰다열받아서만든어플</title>
 <meta name="theme-color" content="#0ea5e9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -39,9 +39,7 @@ button{border:0;background:none;cursor:pointer}
   position: fixed; inset: 0; z-index: 9999;
   background-color: var(--sky-200); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-weight: 900; letter-spacing: -0.5px;
-  transition: opacity 0.5s ease-out; text-align: center; padding: 20px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: opacity 0.4s ease-out; 
 }
 .hide-splash { opacity: 0; pointer-events: none; }
 
@@ -198,7 +196,7 @@ nav.tabs button.on{color:var(--sky-600)}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 
 /* ── 모달 */
-.modal{position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.5);
+.modal{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.5);
   display:flex;align-items:flex-end;justify-content:center}
 .modal .sheet{
   background:#fff;width:100%;max-width:560px;border-radius:20px 20px 0 0;
@@ -236,7 +234,15 @@ table.hist td{padding:6px 4px;border-top:1px solid var(--line);text-align:center
 </head>
 <body>
 
-<div id="splashScreen">유료운동어플쓰다열받아서<br>만들어플</div>
+<!-- 스플래시 및 시작 화면 -->
+<div id="splashScreen">
+  <div style="text-align: center;">
+    <div style="font-size: 26px; font-weight: 900; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      유료어플쓰다열받아서<br>만든어플
+    </div>
+    <button id="splashBtn" class="btn" style="display: none; background: #fff; color: var(--sky-600); margin: 24px auto 0; width: auto; padding: 12px 32px; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onclick="App.startFromSplash()">초기 세팅 시작하기</button>
+  </div>
+</div>
 
 <header>
   <div class="row">
