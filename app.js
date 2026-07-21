@@ -72,7 +72,7 @@ function repsAt(load, e1, rpe) {
   return out;
 }
 
-/* ---------- 날짜 / ISO 주차 ---------- */
+/* ---------- 날짜 및 시간 헬퍼 ---------- */
 function fmtDate(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
 function mmss(sec) {
   sec = Math.max(0, Math.round(sec));
@@ -89,44 +89,44 @@ function getTodayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/* ---------- 템플릿(자유 운동) 기반 기본 세팅 (상체 1,2,3 / 하체 1,2,3) ---------- */
+/* ---------- 2분할 6일 루틴 기본 데이터베이스 ---------- */
 function ex(o) {
   return Object.assign({
     id: 'x' + Math.random().toString(36).slice(2, 9),
-    type: 'weight', // 'weight' 또는 'cardio'
-    targetMin: 30,  // 유산소용 (분)
+    type: 'weight',
+    targetMin: 30,
     name: '', equip: '머신', lift: '', sets: 3, repLo: 8, repHi: 12,
     rir: 1, rest: 150, mode: 'normal', round: 'near', note: ''
   }, o);
 }
 function defaultPrograms() {
   return [
-    { id: 'p1', title: 'Upper 1 (상체 1)', desc: '벤치프레스 톱세트 중심', items: [
+    { id: 'p1', title: '상체 1', desc: '벤치프레스 강도 및 상체 볼륨', items: [
         ex({ name: '벤치프레스 (톱세트)', equip: '바벨', lift: '벤치프레스', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 210 }),
         ex({ name: '벤치프레스 (백오프)', equip: '바벨', lift: '벤치프레스', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 180 }),
         ex({ name: '머신 랫풀다운', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
     ]},
-    { id: 'p2', title: 'Lower 1 (하체 1)', desc: '스쿼트 톱세트 중심', items: [
-        ex({ name: '백스쿼트 (톱세트)', equip: '바벨', lift: '스쿼트', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
-        ex({ name: '백스쿼트 (백오프)', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
-        ex({ name: '레그프레스', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 })
-    ]},
-    { id: 'p3', title: 'Upper 2 (상체 2)', desc: '오버헤드 프레스 중심', items: [
+    { id: 'p2', title: '상체 2', desc: '오버헤드 프레스 및 케이블 로우', items: [
         ex({ name: '오버헤드 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 1, rest: 180 }),
         ex({ name: '시티드 케이블 로우', equip: '케이블', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 }),
         ex({ name: '인클라인 덤벨 프레스', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
     ]},
-    { id: 'p4', title: 'Lower 2 (하체 2)', desc: '데드리프트 중심', items: [
-        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 2, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
-        ex({ name: '불가리안 스플릿 스쿼트', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
-        ex({ name: '라잉 레그컬', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 120 })
-    ]},
-    { id: 'p5', title: 'Upper 3 (상체 3)', desc: '인클라인 및 볼륨 중심', items: [
+    { id: 'p3', title: '상체 3', desc: '인클라인 바벨 및 어깨 집중', items: [
         ex({ name: '인클라인 바벨 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
         ex({ name: '원암 덤벨 로우', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
         ex({ name: '사이드 레터럴 레이즈', equip: '덤벨', sets: 4, repLo: 12, repHi: 20, rir: 0, rest: 90 })
     ]},
-    { id: 'p6', title: 'Lower 3 (하체 3)', desc: '프론트 스쿼트 및 머신', items: [
+    { id: 'p4', title: '하체 1', desc: '백스쿼트 강도 및 레그프레스', items: [
+        ex({ name: '백스쿼트 (톱세트)', equip: '바벨', lift: '스쿼트', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
+        ex({ name: '백스쿼트 (백오프)', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
+        ex({ name: '레그프레스', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 })
+    ]},
+    { id: 'p5', title: '하체 2', desc: '데드리프트 및 후면 사슬', items: [
+        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 2, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
+        ex({ name: '불가리안 스플릿 스쿼트', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
+        ex({ name: '라잉 레그컬', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 120 })
+    ]},
+    { id: 'p6', title: '하체 3', desc: '프론트 스쿼트 및 머신 볼륨', items: [
         ex({ name: '프론트 스쿼트', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
         ex({ name: '레그 익스텐션', sets: 3, repLo: 12, repHi: 15, rir: 0, rest: 120 }),
         ex({ name: '카프 레이즈', sets: 4, repLo: 10, repHi: 15, rir: 0, rest: 90 })
@@ -135,9 +135,9 @@ function defaultPrograms() {
 }
 
 /* ---------- 저장소 ---------- */
-const KEY = 'autoreg.v4'; // 구조 업그레이드 (유산소 및 개별 루틴 추가 대응)
+const KEY = 'autoreg.v5';
 const DEFAULT_STATE = () => ({
-  version: 4,
+  version: 5,
   settings: {
     isFirstRun: true, age: null, rhr: 70, unit: 'kg',
     unitBar: 10, unitMachine: 5, unitDumbbell: 2,
@@ -151,9 +151,9 @@ const DEFAULT_STATE = () => ({
     cardioMin: 30
   },
   programs: defaultPrograms(),
-  logs: {}, // logs[dateStr] = { programId, startedAt, endedAt, sets: { exId: [...] } }
+  logs: {},
   timer: null,
-  session: null // { date, programId, startedAt }
+  session: null
 });
 
 const Store = {
@@ -209,7 +209,6 @@ const Engine = {
     if (!b) return 0;
     let cur = e1rmOf(b.w, b.reps, b.rir);
     
-    // 단순화를 위해 과거 모든 기록을 순회하며 상하한을 누적 적용합니다.
     const dates = this.datesSorted().filter(d => d < targetDate);
     dates.forEach(d => {
       const bestOfDay = this.bestE1ForDate(d, lift);
@@ -324,7 +323,7 @@ function dayDone(dateStr) {
 function progTotalSets(pId) {
   const p = Store.s.programs.find(x => x.id === pId);
   if (!p) return 0;
-  return p.items.reduce((a, e) => a + (e.type === 'cardio' ? 1 : e.sets), 0); // 유산소는 1세트로 취급
+  return p.items.reduce((a, e) => a + (e.type === 'cardio' ? 1 : e.sets), 0);
 }
 
 /* ---------- UI 헬퍼 ---------- */
@@ -355,14 +354,19 @@ function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remov
 const App = {
   tab: 'home',
   cur: null, // { date, programId }
-  editProgramId: null, // 루틴 편집 탭에서 특정 루틴을 열었을 때 사용
+  editProgramId: null,
+  viewMonday: (function() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  })(),
   tick: null,
 
   init() {
     Store.load();
     this.restore();
     
-    // 초기 셋업 로직 및 스플래시 화면 제어
     const splash = el('splashScreen');
     const splashBtn = el('splashBtn');
     
@@ -442,7 +446,6 @@ const App = {
     const T = { home: '오늘의 훈련', workout: '운동 중', program: '루틴 편집', stats: '기록', settings: '설정' };
     el('hTitle').textContent = T[tab];
     
-    // 루틴 탭 누를때마다 항상 목록뷰로 리셋
     if (tab === 'program') this.editProgramId = null;
     
     this.render();
@@ -458,21 +461,63 @@ const App = {
     this.renderRest();
   },
 
-  /* ---------- 홈 (자유 운동 리스트) ---------- */
+  /* ---------- 과거 날짜 운동 구경(조회) 기능 ---------- */
+  openHistoryViewer(dateStr) {
+    const log = Store.s.logs[dateStr];
+    const uLabel = Store.s.settings.unit || 'kg';
+    
+    if (!log || !log.sets || Object.keys(log.sets).length === 0) {
+      toast(`${dateStr}에 기록된 운동이 없습니다.`);
+      return;
+    }
+    
+    const p = Store.s.programs.find(x => x.id === log.programId);
+    const pTitle = p ? p.title : '저장된 루틴';
+    
+    let contentHtml = `<div style="font-size:13px; color:var(--mid); margin-bottom:12px;">루틴: <b>${esc(pTitle)}</b></div>`;
+    
+    Object.entries(log.sets).forEach(([exId, arr]) => {
+      const e = findExById(exId);
+      const name = e ? e.name : '(삭제된 운동)';
+      const doneSets = (arr || []).filter(s => s && s.done);
+      
+      contentHtml += `<div style="background:var(--sky-50); padding:10px; border-radius:10px; margin-bottom:8px;">
+        <div style="font-weight:800; font-size:14px; color:var(--sky-900);">${esc(name)}</div>
+        <div style="font-size:12px; color:var(--mid); margin-top:4px;">`;
+      
+      if (doneSets.length === 0) {
+        contentHtml += `완료된 세트 없음`;
+      } else {
+        doneSets.forEach((s, idx) => {
+          contentHtml += `[${idx+1}세트] ${s.w}${uLabel} × ${s.reps}회 (RIR ${s.rir})<br>`;
+        });
+      }
+      contentHtml += `</div></div>`;
+    });
+    
+    modal(`${dateStr} 운동 구경하기`, contentHtml + `<button class="btn sm" style="margin-top:12px;" onclick="closeModal()">닫기</button>`);
+  },
+
+  shiftWeek(n) {
+    this.viewMonday.setDate(this.viewMonday.getDate() + n * 7);
+    this.render();
+  },
+
+  /* ---------- 홈 ---------- */
   renderHome() {
     const today = new Date();
     const todayStr = getTodayStr();
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     el('hSub').textContent = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${days[today.getDay()]}요일)`;
 
-    // 1. 월간 캘린더 생성
+    // 1. 월간 캘린더 생성 (과거 터치 시 운동 구경 가능)
     const year = today.getFullYear();
     const month = today.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startOffset = firstDay; 
     
-    let monthHtml = `<div class="card"><h2>${month + 1}월 달력</h2><div class="monthly-cal">`;
+    let monthHtml = `<div class="card"><h2>${month + 1}월 달력 <span class="tiny">(날짜 터치시 과거 기록 구경)</span></h2><div class="monthly-cal">`;
     for(let i=0; i < startOffset; i++) monthHtml += `<div></div>`;
     
     for(let d=1; d <= daysInMonth; d++) {
@@ -480,11 +525,27 @@ const App = {
       const isDone = dayDone(iterStr) > 0;
       const isTodayStr = (d === today.getDate()) ? 'today' : '';
       const doneClass = isDone ? 'done' : '';
-      monthHtml += `<div class="m-day ${isTodayStr} ${doneClass}">${d}</div>`;
+      monthHtml += `<div class="m-day ${isTodayStr} ${doneClass}" onclick="App.openHistoryViewer('${iterStr}')">${d}</div>`;
     }
     monthHtml += `</div></div>`;
 
-    // 2. 템플릿 목록 렌더링 (자유 운동)
+    // 2. 주간 캘린더 바 생성
+    let weekCalHtml = '';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(this.viewMonday);
+      d.setDate(this.viewMonday.getDate() + i);
+      const iterStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const isToday = iterStr === todayStr;
+      const isDone = dayDone(iterStr) > 0;
+      
+      weekCalHtml += `<div class="daycell ${isToday ? 'today' : ''} ${isDone ? 'done' : ''}" onclick="App.openHistoryViewer('${iterStr}')">
+        <div class="dw">${['일','월','화','수','목','금','토'][i]}</div>
+        <div class="dd">${d.getDate()}</div>
+        <div class="tag">${isDone ? '기록됨' : '구경'}</div>
+      </div>`;
+    }
+
+    // 3. 루틴 템플릿 목록 렌더링
     let routinesHtml = '';
     Store.s.programs.forEach(p => {
       const exCount = p.items.length;
@@ -495,7 +556,7 @@ const App = {
         <div class="routine-card" onclick="App.startSession('${todayStr}', '${p.id}')">
           <div class="routine-header">
             <span class="routine-title">${esc(p.title)}</span>
-            <span style="font-size:12px; color:var(--sky-600); font-weight:800;">불러와서 시작 ▶</span>
+            <span style="font-size:12px; color:var(--sky-600); font-weight:800;">시작하기 ▶</span>
           </div>
           <div class="routine-desc">${esc(p.desc)}</div>
           <div class="routine-meta">${exCount}개 | ${esc(exNames)}</div>
@@ -505,14 +566,21 @@ const App = {
 
     let homeHtml = monthHtml + `
       <div class="card">
-        <h2>수행할 루틴 선택</h2>
-        <div class="muted" style="margin-bottom:12px;">원하는 템플릿을 선택하여 오늘의 운동을 시작하세요.</div>
+        <div class="weeknav">
+          <button class="navb" onclick="App.shiftWeek(-1)">‹ 이전 주</button>
+          <b>${fmtDate(this.viewMonday)} 주간 기록</b>
+          <button class="navb" onclick="App.shiftWeek(1)">다음 주 ›</button>
+        </div>
+        <div class="weekbar">${weekCalHtml}</div>
+      </div>
+      <div class="card">
+        <h2>수행할 2분할 루틴 선택</h2>
+        <div class="muted" style="margin-bottom:12px;">원하는 루틴을 선택해 오늘의 운동을 시작하세요.</div>
         ${routinesHtml}
         <button class="btn ghost sm" onclick="App.go('program')" style="margin-top:8px;">➕ 새로운 루틴 템플릿 만들기</button>
       </div>
     `;
 
-    // 진행 중인 세션 표시
     if (this.cur && this.cur.date === todayStr) {
       const p = Store.s.programs.find(x => x.id === this.cur.programId);
       if (p) {
@@ -539,7 +607,7 @@ const App = {
     if (!log.startedAt || log.programId !== programId) {
       log.programId = programId;
       log.startedAt = Date.now();
-      log.sets = {}; // 새 루틴 시작시 오늘 세트 초기화
+      log.sets = {};
     }
     Store.s.session = { date: dateStr, programId, startedAt: log.startedAt };
     Store.save();
@@ -601,7 +669,6 @@ const App = {
 
       let rows = '';
       
-      // 유산소 운동 렌더링
       if (e.type === 'cardio') {
         const r = rec[0] || {};
         const dn = !!r.done;
@@ -614,9 +681,7 @@ const App = {
           </div>
           <button class="chk ${dn ? 'on' : ''}" onclick="App.toggleSet('${e.id}',0)">✓</button>
         </div>`;
-      } 
-      // 웨이트 트레이닝 렌더링
-      else {
+      } else {
         rows += `<div class="setrow head"><span></span><span>무게(${uLabel})</span><span>${e.mode === 'restpause' ? '총 반복' : '반복'}</span><span>${e.mode === 'restpause' ? '—' : 'RIR'}</span><span>완료</span></div>`;
         for (let i = 0; i < e.sets; i++) {
           const r = rec[i] || {};
@@ -807,21 +872,24 @@ const App = {
   },
   releaseWakeLock() { try { if (this._wl) { this._wl.release(); this._wl = null; } } catch (e) { } },
 
-  /* ---------- 루틴 템플릿 목록/편집 ---------- */
+  /* ---------- 루틴 템플릿 목록/편집 및 이름 수정 권한 부여 ---------- */
   renderProgram() {
     if (this.editProgramId) return this.renderProgramDetail(this.editProgramId);
     
-    el('hSub').textContent = '저장된 자유 운동 템플릿';
+    el('hSub').textContent = '2분할 6일 루틴 템플릿 편집';
     let html = '';
     Store.s.programs.forEach(p => {
       const exCount = p.items.length;
       html += `
         <div class="card">
-          <h2>${esc(p.title)}</h2>
+          <h2>
+            <span>${esc(p.title)}</span>
+            <button class="pill blue" onclick="App.renameProgram('${p.id}')">루틴 이름 수정</button>
+          </h2>
           <div class="muted">${esc(p.desc)}</div>
           <div class="tiny" style="margin-top:4px;">포함된 운동: ${exCount}개</div>
           <div class="btnrow" style="margin-top:12px;">
-            <button class="btn ghost sm" onclick="App.openProgramDetail('${p.id}')">이 루틴 편집하기</button>
+            <button class="btn ghost sm" onclick="App.openProgramDetail('${p.id}')">세부 운동 편집</button>
             <button class="btn danger sm" onclick="App.deleteProgram('${p.id}')">삭제</button>
           </div>
         </div>
@@ -829,9 +897,9 @@ const App = {
     });
     html += `
       <div class="card">
-        <button class="btn" onclick="App.createProgram()">➕ 새 루틴 템플릿 만들기</button>
+        <button class="btn" onclick="App.createProgram()">➕ 새 루틴 템플릿 추가</button>
         <div style="height:12px"></div>
-        <button class="btn danger sm" onclick="App.resetProgram()">기본 상/하체 템플릿으로 복원</button>
+        <button class="btn danger sm" onclick="App.resetProgram()">기본 2분할 6일 루틴으로 복원</button>
       </div>`;
     el('viewProgram').innerHTML = html;
   },
@@ -846,7 +914,7 @@ const App = {
     const p = Store.s.programs.find(x => x.id === pId);
     if (!p) { this.editProgramId = null; return this.render(); }
     
-    el('hSub').textContent = `루틴 편집: ${p.title}`;
+    el('hSub').textContent = `상세 편집: ${p.title}`;
     const items = (p.items || []).map((e, i) => `
       <div class="exitem">
         <div class="iconb">${i + 1}</div>
@@ -859,7 +927,7 @@ const App = {
     
     el('viewProgram').innerHTML = `
       <div class="card">
-        <h2>${esc(p.title)} <button class="pill blue" onclick="App.renameProgram('${p.id}')">이름/설명 변경</button></h2>
+        <h2>${esc(p.title)} <button class="pill blue" onclick="App.renameProgram('${p.id}')">이름 수정</button></h2>
         <div class="muted">${esc(p.desc)}</div>
         <div style="margin-top:16px;">${items}</div>
         <div style="height:12px"></div>
@@ -872,9 +940,9 @@ const App = {
   },
 
   createProgram() {
-    const title = prompt('새 루틴 이름', '새로운 자유 운동');
+    const title = prompt('새 루틴 이름 (예: 상체 4)', '상체 4');
     if (!title) return;
-    const desc = prompt('루틴 설명 (부위 등)', '가슴, 어깨 등');
+    const desc = prompt('루틴 설명', '추가 루틴');
     Store.s.programs.push({
       id: 'p' + Math.random().toString(36).slice(2, 9),
       title: title.trim(),
@@ -886,16 +954,17 @@ const App = {
 
   renameProgram(pId) {
     const p = Store.s.programs.find(x => x.id === pId);
-    const t = prompt('루틴 이름', p.title);
+    const t = prompt('루틴 이름 수정', p.title);
     if (!t) return;
-    const d = prompt('루틴 설명', p.desc);
+    const d = prompt('루틴 설명 수정', p.desc);
     p.title = t.trim();
     p.desc = (d || '').trim();
     Store.save(); this.render();
+    toast('루틴 이름이 수정되었습니다');
   },
 
   deleteProgram(pId) {
-    if (!confirm('이 루틴 템플릿을 삭제할까요? (과거 완료 기록은 남습니다)')) return;
+    if (!confirm('이 루틴 템플릿을 삭제할까요?')) return;
     Store.s.programs = Store.s.programs.filter(x => x.id !== pId);
     Store.save(); this.render();
   },
@@ -920,7 +989,6 @@ const App = {
   addExercise(pId) { this.exerciseForm(pId, -1); },
   editExercise(pId, i) { this.exerciseForm(pId, i); },
 
-  // 인라인 스크립트로 호출될 유산소/웨이트 토글 함수
   toggleExType() {
     const isCardio = el('fType').value === 'cardio';
     el('weightFields').style.display = isCardio ? 'none' : 'block';
@@ -941,7 +1009,7 @@ const App = {
         </select>
       </div>
       <div class="field"><label>운동 이름</label>
-        <input id="fName" value="${esc(e.name)}" placeholder="예) 인클라인 덤벨 프레스 또는 러닝머신"></div>
+        <input id="fName" value="${esc(e.name)}" placeholder="예: 벤치프레스 또는 러닝머신"></div>
       
       <div id="cardioFields" style="display: ${e.type === 'cardio' ? 'block' : 'none'};">
         <div class="field"><label>목표 시간 (분)</label>
@@ -1014,9 +1082,9 @@ const App = {
   },
 
   resetProgram() {
-    if (!confirm('기본 상/하체 템플릿 6개로 되돌릴까요? 기존 템플릿은 모두 지워집니다.')) return;
+    if (!confirm('기본 2분할 6일 루틴으로 되돌릴까요? 기존 템플릿은 모두 초기화됩니다.')) return;
     Store.s.programs = defaultPrograms();
-    Store.save(); this.render(); toast('기본 템플릿 복원 완료');
+    Store.save(); this.render(); toast('기본 2분할 6일 루틴 복원 완료');
   },
 
   /* ---------- 기록 ---------- */
@@ -1059,7 +1127,7 @@ const App = {
       
       if (!rows) return;
       const p = Store.s.programs.find(x => x.id === log.programId);
-      const pTitle = p ? p.title : '삭제된 루틴';
+      const pTitle = p ? p.title : '저장된 루틴';
       
       html += `<div class="card">
         <h2>${d} <span class="pill blue">${pTitle}</span></h2>
