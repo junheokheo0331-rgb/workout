@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-// --- [추가] 누락되었던 전역 유틸리티 핵심 함수 정의 ---
+// --- 전역 유틸리티 핵심 함수 정의 ---
 function el(id) { return document.getElementById(id); }
 function esc(str) { 
   if (!str) return '';
@@ -25,7 +25,6 @@ function toast(msg) {
   setTimeout(() => t.remove(), 2500);
 }
 function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remove()); }
-// ----------------------------------------------------
 
 const RPE_COLS = [10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6];
 const RPE_TABLE = [
@@ -224,15 +223,13 @@ const Engine = {
   }
 };
 
+// --- [핵심 수정] HTML 인라인 onclick 이벤트 에러 방지를 위해 객체 생성 즉시 window에 할당 ---
 const App = {
   tab: 'home',
   tick: null,
 
   init() {
     Store.load();
-    // 글로벌 윈도우 스코프에 인라인 호출용 바인딩
-    window.App = this;
-    
     this.checkOnboarding();
     document.querySelectorAll('nav.tabs button').forEach(b => {
       b.addEventListener('click', () => this.go(b.dataset.tab));
@@ -254,7 +251,7 @@ const App = {
       
       <div style="margin: 16px 0 8px 0; font-size: 12px; font-weight: 700; color: var(--sky-900); display: flex; justify-content: space-between; align-items: center;">
         <span>3대 Baseline 1RM 구성 (kg)</span>
-        <button type="button" style="font-size: 11px; color: var(--sky-500); font-weight: 700; text-decoration: underline;" onclick="App.setUnknownSBD()">측정 기록 없음 (기본값 설정)</button>
+        <button type="button" style="font-size: 11px; color: var(--sky-500); font-weight: 700; text-decoration: underline;" onclick="window.App.setUnknownSBD()">측정 기록 없음 (기본값 설정)</button>
       </div>
 
       <div class="field"><label>스쿼트 1RM</label>
@@ -264,11 +261,10 @@ const App = {
       <div class="field"><label>데드리프트 1RM</label>
         <input type="number" id="onDl" placeholder="150"></div>
       <div style="height:10px"></div>
-      <button class="btn" onclick="App.saveOnboarding()">프로필 초기화 완료</button>
+      <button class="btn" onclick="window.App.saveOnboarding()">프로필 초기화 완료</button>
     `;
     const m = modal('시스템 초기 파라미터 구성', html);
-    // [수정] 모달 강제 취소 이벤트 리스너 제거 방식 안전하게 변경
-    m.onclick = null; 
+    m.onclick = null; // 외부 클릭으로 닫히지 않게 강제 고정
   },
 
   setUnknownSBD() {
@@ -295,12 +291,12 @@ const App = {
     if (!Store.s.user.initialized) return;
     this.tab = tab;
     ['home', 'workout', 'program', 'stats', 'settings'].forEach(t => {
-      const targetView = el('view' + t[0].toUpperCase() + t.slice(1));
-      if(targetView) targetView.classList.toggle('hide', t !== tab);
+      const view = el('view' + t[0].toUpperCase() + t.slice(1));
+      if (view) view.classList.toggle('hide', t !== tab);
     });
     document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     const hTitle = el('hTitle');
-    if(hTitle) hTitle.textContent = tab === 'workout' ? '트레이닝 레코더' : (tab === 'program' ? '자율 루틴 아키텍처' : 'Autoreg PRO');
+    if (hTitle) hTitle.textContent = tab === 'workout' ? '트레이닝 레코더' : (tab === 'program' ? '자율 루틴 아키텍처' : 'Autoreg PRO');
     this.render();
   },
 
@@ -344,7 +340,7 @@ const App = {
             <h2 style="margin:0 0 6px 0; font-size:14.5px;">${esc(r.title)}</h2>
             <div style="display:flex; flex-wrap:wrap; gap:2px;">${itemsPreview || '<span class="tiny">구성된 종목이 없습니다.</span>'}</div>
           </div>
-          <button class="btn" onclick="App.startSession('${r.id}')">세션 초기화 및 워크아웃 개시</button>
+          <button class="btn" onclick="window.App.startSession('${r.id}')">세션 초기화 및 워크아웃 개시</button>
         </div>
       `;
     });
@@ -386,7 +382,7 @@ const App = {
     let html = `
       <div class="sessbar" style="display:flex; justify-content:space-between; align-items:center; background: var(--sky-900); color:#fff; padding:12px; border-radius:8px; margin-bottom:12px;">
         <div style="font-size:13px; font-weight:700;">세션 경과 시간: <span id="sessT" style="font-variant-numeric:tabular-nums;">${hhmmss(elapsed)}</span></div>
-        <button class="pill red" style="border:0; cursor:pointer;" onclick="App.abortSession()">훈련 파기</button>
+        <button class="pill red" style="border:0; cursor:pointer;" onclick="window.App.abortSession()">훈련 파기</button>
       </div>
       <div style="font-size:14px; font-weight:700; color:var(--sky-900); margin-bottom:12px;">실행 중인 아키텍처: ${esc(s.title)}</div>
     `;
@@ -408,13 +404,13 @@ const App = {
           <div style="padding: 12px; background: var(--sky-50); border-radius: 8px; margin-top:6px; border: 1px solid var(--line);">
             <div style="font-size:12px; margin-bottom: 8px; font-weight:700; color:var(--sky-900);">지속 대사 시간 설정</div>
             <div style="display:flex; gap:6px; align-items:center; margin-bottom:10px;">
-              <input type="number" style="width:64px; padding:6px; text-align:center; border-radius:4px; border:1px solid var(--line);" value="${cData.cardioMin || e.cardioMin}" onchange="App.setCardioMin('${exId}', this.value)">
+              <input type="number" style="width:64px; padding:6px; text-align:center; border-radius:4px; border:1px solid var(--line);" value="${cData.cardioMin || e.cardioMin}" onchange="window.App.setCardioMin('${exId}', this.value)">
               <span style="font-size:12px; color:var(--mid);">분</span>
-              <button class="btn sm" style="margin:0; padding:6px 12px; border-radius:4px;" onclick="App.startRest(${(cData.cardioMin || e.cardioMin) * 60}, '${e.name}')">타이머 연동 기동</button>
+              <button class="btn sm" style="margin:0; padding:6px 12px; border-radius:4px;" onclick="window.App.startRest(${(cData.cardioMin || e.cardioMin) * 60}, '${e.name}')">타이머 연동 기동</button>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px dashed var(--line); padding-top:8px;">
               <span class="tiny">수행 상태 플래그</span>
-              <button class="chk ${cData.done ? 'on' : ''}" style="width:80px; height:30px; font-size:12px; border-radius:4px;" onclick="App.toggleCardioDone('${exId}')">${cData.done ? '검증 완료' : '미완료'}</button>
+              <button class="chk ${cData.done ? 'on' : ''}" style="width:80px; height:30px; font-size:12px; border-radius:4px;" onclick="window.App.toggleCardioDone('${exId}')">${cData.done ? '검증 완료' : '미완료'}</button>
             </div>
           </div>
         `;
@@ -425,12 +421,12 @@ const App = {
           rows += `
             <div class="setrow ${setObj.done ? 'done' : ''}">
               <div class="setno">${i + 1}</div>
-              <input type="number" placeholder="${t.w || '-'}" value="${setObj.w}" onchange="App.setSessionVal('${exId}', ${i}, 'w', this.value)">
-              <input type="number" placeholder="${t.reps || '-'}" value="${setObj.reps}" onchange="App.setSessionVal('${exId}', ${i}, 'reps', this.value)">
-              <select onchange="App.setSessionVal('${exId}', ${i}, 'rir', this.value)">
+              <input type="number" placeholder="${t.w || '-'}" value="${setObj.w}" onchange="window.App.setSessionVal('${exId}', ${i}, 'w', this.value)">
+              <input type="number" placeholder="${t.reps || '-'}" value="${setObj.reps}" onchange="window.App.setSessionVal('${exId}', ${i}, 'reps', this.value)">
+              <select onchange="window.App.setSessionVal('${exId}', ${i}, 'rir', this.value)">
                 ${[0, 0.5, 1, 1.5, 2, 2.5, 3, 4].map(v => `<option value="${v}" ${+setObj.rir === v ? 'selected' : ''}>${v}</option>`).join('')}
               </select>
-              <button class="chk ${setObj.done ? 'on' : ''}" onclick="App.toggleSessionSet('${exId}', ${i}, ${t.w || 0}, ${t.reps || 0})">✓</button>
+              <button class="chk ${setObj.done ? 'on' : ''}" onclick="window.App.toggleSessionSet('${exId}', ${i}, ${t.w || 0}, ${t.reps || 0})">✓</button>
             </div>
           `;
         });
@@ -453,10 +449,10 @@ const App = {
     html += `
       <div class="card" style="margin-top: 16px;">
         <div class="btnrow" style="margin-bottom:12px;">
-          <button class="btn ghost sm" onclick="App.promptAddLiveExercise(false)">자유 중량 종목 추가</button>
-          <button class="btn ghost sm" onclick="App.promptAddLiveExercise(true)">자유 유산소 종목 추가</button>
+          <button class="btn ghost sm" onclick="window.App.promptAddLiveExercise(false)">자유 중량 종목 추가</button>
+          <button class="btn ghost sm" onclick="window.App.promptAddLiveExercise(true)">자유 유산소 종목 추가</button>
         </div>
-        <button class="btn" style="background: var(--sky-900);" onclick="App.askFinishSession()">세션 종료 및 과부하 데이터 피드백 연산</button>
+        <button class="btn" style="background: var(--sky-900);" onclick="window.App.askFinishSession()">세션 종료 및 과부하 데이터 피드백 연산</button>
       </div>
     `;
 
@@ -579,7 +575,7 @@ const App = {
         <h2>자율 트레이닝 루틴 블록 신규 설계</h2>
         <div class="field"><label>프로그램 아키텍처 식별자 명명</label>
           <input type="text" id="newRoutineTitle" placeholder="예: 상체 스트렝스 블록 A"></div>
-        <button class="btn sm" onclick="App.createRoutine()">루틴 블록 추가 고정</button>
+        <button class="btn sm" onclick="window.App.createRoutine()">루틴 블록 추가 고정</button>
       </div>
     `;
 
@@ -591,7 +587,7 @@ const App = {
             <div class="n">${esc(it.name)}</div>
             <div class="m">${it.isCardio ? `유산소: 대사 제한 시간 ${it.cardioMin}분` : `${it.sets}세트 고정 · 목표 RIR ${it.rir} · ${it.equip}`}</div>
           </div>
-          <button class="iconb del" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2;" onclick="App.deleteRoutineItem('${r.id}', ${idx})">✕</button>
+          <button class="iconb del" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2;" onclick="window.App.deleteRoutineItem('${r.id}', ${idx})">✕</button>
         </div>
       `).join('') || '<div class="emptybox">루틴 아키텍처 내부 종목이 구성되지 않았습니다.</div>';
 
@@ -599,12 +595,12 @@ const App = {
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h2 style="margin:0;">${esc(r.title)}</h2>
-            <button class="pill red" style="border:1px solid #feb2b2; cursor:pointer;" onclick="App.removeRoutineWhole('${r.id}')">블록 전체 파기</button>
+            <button class="pill red" style="border:1px solid #feb2b2; cursor:pointer;" onclick="window.App.removeRoutineWhole('${r.id}')">블록 전체 파기</button>
           </div>
           <div style="margin: 8px 0;">${itemsHtml}</div>
           <div class="btnrow">
-            <button class="btn ghost sm" onclick="App.promptAddRoutineItem('${r.id}', false)">중량 종목 삽입</button>
-            <button class="btn ghost sm" onclick="App.promptAddRoutineItem('${r.id}', true)">대사 종목 삽입</button>
+            <button class="btn ghost sm" onclick="window.App.promptAddRoutineItem('${r.id}', false)">중량 종목 삽입</button>
+            <button class="btn ghost sm" onclick="window.App.promptAddRoutineItem('${r.id}', true)">대사 종목 삽입</button>
           </div>
         </div>
       `;
@@ -675,7 +671,6 @@ const App = {
           const doneSets = arr.filter(s => s.done);
           if (!doneSets.length) return;
           
-          // 종목 블록명을 찾기 위한 매칭 로직 보완
           let matchedName = '지정 종목';
           Store.s.routines.forEach(rt => {
             const found = rt.items.find(i => i.id === exId);
@@ -708,12 +703,6 @@ const App = {
   }
 };
 
-function modal(title, html) {
-  const m = document.createElement('div'); m.className = 'modal';
-  m.innerHTML = `<div class="sheet"><h3>${esc(title)}</h3>${html}</div>`;
-  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  document.body.appendChild(m);
-  return m;
-}
-
+// 선언 즉시 window에 주입하여 index.html 내의 인라인 onclick 호출이 터지지 않도록 보장
+window.App = App;
 window.addEventListener('DOMContentLoaded', () => { App.init(); });
