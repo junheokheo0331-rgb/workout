@@ -108,7 +108,7 @@ function hhmmss(sec) {
   return (h > 0 ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
 }
 
-/* ---------- 상체 1~3, 하체 1~3 기본 프로그램 셋업 ---------- */
+/* ---------- 템플릿(자유 운동) 기반 기본 세팅 ---------- */
 function ex(o) {
   return Object.assign({
     id: 'x' + Math.random().toString(36).slice(2, 9),
@@ -116,58 +116,38 @@ function ex(o) {
     rir: 1, rest: 150, mode: 'normal', round: 'near', note: ''
   }, o);
 }
-function defaultProgram() {
-  return {
-    mon: {
-      title: 'Upper 1 (상체 1)', items: [
-        ex({ name: '벤치프레스 (톱세트)', equip: '바벨', lift: '벤치프레스', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 210 }),
-        ex({ name: '벤치프레스 (백오프)', equip: '바벨', lift: '벤치프레스', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 180 }),
-        ex({ name: '머신 랫풀다운', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
+function defaultPrograms() {
+  return [
+    {
+      id: 'p1', title: '자유 운동 (가슴, 등)', desc: '상체 볼륨', items: [
+        ex({ name: '벤치프레스', equip: '바벨', lift: '벤치프레스', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 180 }),
+        ex({ name: '랫풀다운', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
       ]
     },
-    tue: {
-      title: 'Lower 1 (하체 1)', items: [
-        ex({ name: '백스쿼트 (톱세트)', equip: '바벨', lift: '스쿼트', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
-        ex({ name: '백스쿼트 (백오프)', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
+    {
+      id: 'p2', title: '자유 운동 (하체)', desc: '스쿼트 중심', items: [
+        ex({ name: '스쿼트', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
         ex({ name: '레그프레스', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 })
       ]
     },
-    wed: {
-      title: 'Upper 2 (상체 2)', items: [
+    {
+      id: 'p3', title: '자유 운동 (어깨, 팔)', desc: '오버헤드 프레스 외', items: [
         ex({ name: '오버헤드 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 1, rest: 180 }),
-        ex({ name: '시티드 케이블 로우', equip: '케이블', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 }),
-        ex({ name: '인클라인 덤벨 프레스', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
-      ]
-    },
-    thu: {
-      title: 'Lower 2 (하체 2)', items: [
-        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 2, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
-        ex({ name: '불가리안 스플릿 스쿼트', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
-        ex({ name: '라잉 레그컬', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 120 })
-      ]
-    },
-    fri: {
-      title: 'Upper 3 (상체 3)', items: [
-        ex({ name: '인클라인 바벨 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
-        ex({ name: '원암 덤벨 로우', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
         ex({ name: '사이드 레터럴 레이즈', equip: '덤벨', sets: 4, repLo: 12, repHi: 20, rir: 0, rest: 90 })
       ]
     },
-    sat: {
-      title: 'Lower 3 (하체 3)', items: [
-        ex({ name: '프론트 스쿼트', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
-        ex({ name: '레그 익스텐션', sets: 3, repLo: 12, repHi: 15, rir: 0, rest: 120 }),
-        ex({ name: '카프 레이즈', sets: 4, repLo: 10, repHi: 15, rir: 0, rest: 90 })
+    {
+      id: 'p4', title: '자유 운동 (전신)', desc: '데드리프트 외', items: [
+        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 3, repLo: 3, repHi: 5, rir: 2, rest: 240 })
       ]
-    },
-    sun: { title: '휴식 (유산소 가능)', items: [] }
-  };
+    }
+  ];
 }
 
 /* ---------- 저장소 ---------- */
-const KEY = 'autoreg.v2'; // 스토리지 키 업데이트 (새 구조 분리)
+const KEY = 'autoreg.v3'; // 스토리지 키 업데이트 (템플릿 구조 완전 변경)
 const DEFAULT_STATE = () => ({
-  version: 2,
+  version: 3,
   settings: {
     isFirstRun: true, age: null, rhr: 70, unit: 'kg',
     unitBar: 10, unitMachine: 5, unitDumbbell: 2,
@@ -180,8 +160,10 @@ const DEFAULT_STATE = () => ({
     autoRest: true, sound: true, vibrate: true, notify: false, wakelock: true,
     cardioMin: 30
   },
-  program: defaultProgram(),
-  logs: {}, timer: null, session: null
+  programs: defaultPrograms(),
+  logs: {}, // logs[dateStr] = { programId, startedAt, endedAt, sets: { exId: [...] } }
+  timer: null,
+  session: null // { date, programId, startedAt }
 });
 
 const Store = {
@@ -191,7 +173,7 @@ const Store = {
       const raw = localStorage.getItem(KEY);
       this.s = raw ? JSON.parse(raw) : DEFAULT_STATE();
     } catch (e) { this.s = DEFAULT_STATE(); }
-    if (!this.s.program) this.s.program = defaultProgram();
+    if (!this.s.programs) this.s.programs = defaultPrograms();
     if (!this.s.logs) this.s.logs = {};
     if (!this.s.settings) this.s.settings = DEFAULT_STATE().settings;
     if (this.s.settings.isFirstRun === undefined) this.s.settings.isFirstRun = true;
@@ -211,13 +193,15 @@ const Engine = {
     if (e.equip === '덤벨') return st.unitDumbbell;
     return st.unitMachine;
   },
-  weeksSorted() { return Object.keys(Store.s.logs).sort(); },
-  bestE1(weekKey, lift) {
-    const wk = Store.s.logs[weekKey]; if (!wk) return 0;
+  datesSorted() { return Object.keys(Store.s.logs).sort(); },
+  
+  bestE1Before(targetDate, lift) {
+    const dates = this.datesSorted().filter(d => d < targetDate);
     let best = 0;
-    Object.values(wk).forEach(day => {
-      if (!day || !day.sets) return;
-      Object.entries(day.sets).forEach(([exId, arr]) => {
+    dates.forEach(d => {
+      const log = Store.s.logs[d];
+      if (!log || !log.sets) return;
+      Object.entries(log.sets).forEach(([exId, arr]) => {
         const e = findExById(exId);
         if (!e || e.lift !== lift) return;
         (arr || []).forEach(s => {
@@ -229,40 +213,58 @@ const Engine = {
     });
     return best;
   },
-  appliedE1(lift, targetWeek) {
+  appliedE1(lift, targetDate) {
     const st = Store.s.settings;
     const b = st.baseline[lift];
     if (!b) return 0;
     let cur = e1rmOf(b.w, b.reps, b.rir);
-    this.weeksSorted().forEach(wk => {
-      if (wk >= targetWeek) return;
-      const best = this.bestE1(wk, lift);
-      if (!best) return;
-      const up = cur * (1 + st.capUp), dn = cur * (1 - st.capDown);
-      cur = Math.round(Math.min(Math.max(best, dn), up) * 10) / 10;
+    
+    // 단순화를 위해 과거 모든 기록을 순회하며 상하한을 누적 적용합니다.
+    const dates = this.datesSorted().filter(d => d < targetDate);
+    dates.forEach(d => {
+      const bestOfDay = this.bestE1ForDate(d, lift);
+      if (bestOfDay > 0) {
+        const up = cur * (1 + st.capUp), dn = cur * (1 - st.capDown);
+        cur = Math.round(Math.min(Math.max(bestOfDay, dn), up) * 10) / 10;
+      }
     });
     return Math.round(cur * 10) / 10;
   },
-  prevRecord(exId, targetWeek) {
-    const wks = this.weeksSorted().filter(w => w < targetWeek).reverse();
-    for (const wk of wks) {
-      const days = Store.s.logs[wk];
-      for (const dk of DAY_KEYS) {
-        const d = days[dk];
-        if (d && d.sets && d.sets[exId]) {
-          const arr = d.sets[exId].filter(s => s && s.done && +s.reps > 0);
-          if (arr.length) return { week: wk, sets: d.sets[exId] };
+  bestE1ForDate(dateStr, lift) {
+    const log = Store.s.logs[dateStr];
+    if(!log || !log.sets) return 0;
+    let best = 0;
+    Object.entries(log.sets).forEach(([exId, arr]) => {
+      const e = findExById(exId);
+      if(!e || e.lift !== lift) return;
+      (arr || []).forEach(s => {
+        if(s && s.done) {
+          const v = e1rmOf(+s.w, +s.reps, +s.rir);
+          if(v > best) best = v;
         }
+      });
+    });
+    return best;
+  },
+
+  prevRecord(exId, targetDate) {
+    const dates = this.datesSorted().filter(d => d < targetDate).reverse();
+    for (const d of dates) {
+      const log = Store.s.logs[d];
+      if (log && log.sets && log.sets[exId]) {
+        const arr = log.sets[exId].filter(s => s && s.done && +s.reps > 0);
+        if (arr.length) return { date: d, sets: log.sets[exId] };
       }
     }
     return null;
   },
-  targets(e, weekKey) {
+
+  targets(e, targetDate) {
     const unit = this.unitFor(e);
     const uLabel = Store.s.settings.unit || 'kg';
     const out = [];
     if (e.lift) {
-      const e1 = this.appliedE1(e.lift, weekKey);
+      const e1 = this.appliedE1(e.lift, targetDate);
       const rpe = 10 - e.rir;
       let w0 = e1 * pct1RM(e.repLo, rpe) / 100;
       w0 = e.round === 'floor' ? Math.floor(w0 / unit) * unit : Math.round(w0 / unit) * unit;
@@ -274,7 +276,7 @@ const Engine = {
       }
       return out;
     }
-    const prev = this.prevRecord(e.id, weekKey);
+    const prev = this.prevRecord(e.id, targetDate);
     for (let i = 0; i < e.sets; i++) {
       const p = prev && prev.sets[i] && prev.sets[i].done ? prev.sets[i] : null;
       if (!p || !+p.w) {
@@ -306,30 +308,33 @@ const Engine = {
 
 function allExercises() {
   const out = [];
-  DAY_KEYS.forEach(d => (Store.s.program[d].items || []).forEach(e => out.push(e)));
+  Store.s.programs.forEach(p => (p.items || []).forEach(e => out.push(e)));
   return out;
 }
 function findExById(id) { return allExercises().find(e => e.id === id) || null; }
 
 /* ---------- 로그 접근 ---------- */
-function getDayLog(weekKey, dayKey, create) {
-  const L = Store.s.logs;
-  if (!L[weekKey]) { if (!create) return null; L[weekKey] = {}; }
-  if (!L[weekKey][dayKey]) {
+function getLog(dateStr, create) {
+  if (!Store.s.logs[dateStr]) {
     if (!create) return null;
-    L[weekKey][dayKey] = { date: null, startedAt: null, endedAt: null, sets: {} };
+    Store.s.logs[dateStr] = { programId: null, startedAt: null, endedAt: null, sets: {} };
   }
-  return L[weekKey][dayKey];
+  return Store.s.logs[dateStr];
 }
-function dayDone(weekKey, dayKey) {
-  const d = getDayLog(weekKey, dayKey, false);
+function dayDone(dateStr) {
+  const d = getLog(dateStr, false);
   if (!d) return 0;
   let n = 0;
   Object.values(d.sets || {}).forEach(arr => (arr || []).forEach(s => { if (s && s.done) n++; }));
   return n;
 }
-function dayTotalSets(dayKey) {
-  return (Store.s.program[dayKey].items || []).reduce((a, e) => a + e.sets, 0);
+function progTotalSets(pId) {
+  const p = Store.s.programs.find(x => x.id === pId);
+  return p ? (p.items || []).reduce((a, e) => a + e.sets, 0) : 0;
+}
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /* ---------- UI 헬퍼 ---------- */
@@ -359,10 +364,8 @@ function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remov
    ============================================================ */
 const App = {
   tab: 'home',
-  viewMonday: mondayOf(new Date()),
-  cur: null,
+  cur: null, // { date, programId }
   tick: null,
-  selectedSessionKey: null,
 
   init() {
     Store.load();
@@ -373,10 +376,8 @@ const App = {
     const splashBtn = el('splashBtn');
     
     if (Store.s.settings.isFirstRun) {
-      // 첫 접속 시에는 명시적인 버튼을 보여줘서 사용자가 다음 단계(기본세팅)로 넘어가게 만듦
       if (splashBtn) splashBtn.style.display = 'block';
     } else {
-      // 이후 접속 시에는 자동으로 스플래시 페이드아웃
       if (splash) setTimeout(() => splash.classList.add('hide-splash'), 800);
     }
 
@@ -392,13 +393,12 @@ const App = {
     this.go('home');
   },
   
-  // 스플래시에서 시작하기 버튼을 눌렀을 때 호출
   startFromSplash() {
     const splash = el('splashScreen');
     if (splash) splash.classList.add('hide-splash');
     
     if (Store.s.settings.isFirstRun) {
-      setTimeout(() => this.showInitialSetup(), 400); // 스플래시가 부드럽게 사라진 후 모달 오픈
+      setTimeout(() => this.showInitialSetup(), 400);
     }
   },
   
@@ -432,18 +432,15 @@ const App = {
     st.baseline['벤치프레스'] = { w: +el('initBp').value || 0, reps: 1, rir: 0 };
     st.baseline['데드리프트'] = { w: +el('initDl').value || 0, reps: 1, rir: 0 };
     st.isFirstRun = false;
-    
-    Store.save();
-    closeModal();
-    this.render();
+    Store.save(); closeModal(); this.render();
   },
 
   restore() {
     const s = Store.s;
-    if (s.session) {
-      const nowW = isoWeekKey(new Date());
-      if (s.session.week === nowW) this.cur = { week: s.session.week, day: s.session.day };
-      else s.session = null;
+    if (s.session && s.session.date === getTodayStr()) {
+      this.cur = { date: s.session.date, programId: s.session.programId };
+    } else {
+      s.session = null;
     }
   },
 
@@ -454,7 +451,7 @@ const App = {
     });
     document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     el('hAction').textContent = tab === 'workout' ? '세션 종료' : '설정';
-    const T = { home: '오늘의 훈련', workout: '운동 중', program: '루틴 편집', stats: '기록', settings: '설정' };
+    const T = { home: '오늘의 훈련', workout: '운동 중', program: '루틴 템플릿', stats: '기록', settings: '설정' };
     el('hTitle').textContent = T[tab];
     this.render();
     window.scrollTo(0, 0);
@@ -469,24 +466,13 @@ const App = {
     this.renderRest();
   },
 
-  /* ---------- 홈 ---------- */
-  handleSessionSelect(val) {
-    if (val === 'new') {
-      this.go('program');
-    } else {
-      this.selectedSessionKey = val;
-      this.renderHome();
-    }
-  },
-
+  /* ---------- 홈 (자유 운동 리스트) ---------- */
   renderHome() {
     const today = new Date();
-    const tdKey = this.selectedSessionKey || dayKeyOf(today);
-    const wkKey = isoWeekKey(this.viewMonday);
-    const isThisWeek = isoWeekKey(today) === wkKey;
-    el('hSub').textContent = `${today.getFullYear()}. ${fmtDate(today)} (${DAY_KO[dayKeyOf(today)]}) · ${isoWeekKey(today)}`;
+    const todayStr = getTodayStr();
+    el('hSub').textContent = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
 
-    // 1. 월간 캘린더 생성 (해당 달력)
+    // 1. 월간 캘린더 생성
     const year = today.getFullYear();
     const month = today.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
@@ -497,141 +483,86 @@ const App = {
     for(let i=0; i < startOffset; i++) monthHtml += `<div></div>`;
     
     for(let d=1; d <= daysInMonth; d++) {
-      const iterDate = new Date(year, month, d);
-      const iWkKey = isoWeekKey(iterDate);
-      const iDkKey = dayKeyOf(iterDate);
-      const isDone = dayDone(iWkKey, iDkKey) > 0;
+      const iterStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isDone = dayDone(iterStr) > 0;
       const isTodayStr = (d === today.getDate()) ? 'today' : '';
       const doneClass = isDone ? 'done' : '';
       monthHtml += `<div class="m-day ${isTodayStr} ${doneClass}">${d}</div>`;
     }
     monthHtml += `</div></div>`;
 
-    // 2. 주간 캘린더 생성
-    let cal = '';
-    for (let i = 0; i < 7; i++) {
-      const d = addDays(this.viewMonday, i);
-      const dk = DAY_KEYS[i];
-      const prog = Store.s.program[dk];
-      const isToday = isThisWeek && dk === dayKeyOf(today);
-      const done = dayDone(wkKey, dk);
-      const total = dayTotalSets(dk);
-      const rest = total === 0;
-      cal += `<div class="daycell ${isToday ? 'today' : ''} ${done > 0 ? 'done' : ''} ${rest ? 'rest' : ''}" onclick="App.openDay('${wkKey}','${dk}')">
-        <div class="dw">${DAY_KO[dk]}</div>
-        <div class="dd">${d.getDate()}</div>
-        <div class="tag">${rest ? '휴식' : (prog.title.split('—')[0].trim() || '운동')}</div>
-      </div>`;
-    }
-
-    // 3. 오늘의 훈련 세션 컨트롤 박스
-    const tprog = Store.s.program[tdKey];
-    const tTotal = dayTotalSets(tdKey);
-    const tDone = dayDone(isoWeekKey(today), tdKey);
-    
-    const listHtml = (tprog.items || []).map(e =>
-      `<div class="exitem"><div class="g"><div class="n">${esc(e.name)}</div>
-        <div class="m">${e.sets}세트 · ${e.mode === 'restpause' ? '총 ' : ''}${e.repLo}~${e.repHi}회 · RIR${e.rir}</div></div>
-        <span class="pill blue">${esc(e.equip)}</span></div>`).join('') || '<div class="emptybox">등록된 운동이 없습니다.</div>';
-
-    let options = `<option value="${dayKeyOf(today)}">${Store.s.program[dayKeyOf(today)].title} (오늘 기본)</option>`;
-    DAY_KEYS.forEach(k => {
-      if(k !== dayKeyOf(today)) options += `<option value="${k}">${Store.s.program[k].title}</option>`;
-    });
-    options += `<option value="new">➕ 새로운 세트 만들기 (루틴 편집)</option>`;
-
-    let sessionCard = `<div class="card">
-      <h2>진행할 세션 선택</h2>
-      <select style="width:100%; padding:10px; border-radius:10px; margin-bottom:12px; border:1.5px solid var(--line); font-weight:700;" onchange="App.handleSessionSelect(this.value)">
-        <option value="" disabled>세션을 선택하세요</option>
-        ${options.replace(`value="${tdKey}"`, `value="${tdKey}" selected`)}
-      </select>
+    // 2. 템플릿 목록 렌더링 (자유 운동)
+    let routinesHtml = '';
+    Store.s.programs.forEach(p => {
+      const exCount = p.items.length;
+      let exNames = p.items.slice(0,2).map(e => e.name).join(', ');
+      if (exCount > 2) exNames += ' 외';
       
-      <details>
-        <summary>클릭하여 상세 운동 목록 보기</summary>
-        <div style="margin-top:8px;">${listHtml}</div>
-      </details>
-      
-      ${CardioEngine.renderDashboard()}
-      
-      <button class="btn" style="margin-top:8px;" onclick="App.startSession('${isoWeekKey(today)}','${tdKey}')">
-        ${tDone > 0 ? '이어서 하기' : '운동 시작하기'}
-      </button>
-    </div>`;
-
-    /* 최근 세션 */
-    const recent = [];
-    this.weeksDesc().forEach(wk => {
-      DAY_KEYS.slice().reverse().forEach(dk => {
-        const d = Store.s.logs[wk] && Store.s.logs[wk][dk];
-        if (d && d.date) {
-          const n = dayDone(wk, dk);
-          if (n) recent.push({ wk, dk, date: d.date, n, title: Store.s.program[dk].title });
-        }
-      });
-    });
-    recent.sort((a, b) => b.date.localeCompare(a.date));
-    const recHtml = recent.slice(0, 6).map(r => {
-      const dd = new Date(r.date);
-      return `<div class="exitem" onclick="App.openDay('${r.wk}','${r.dk}')">
-        <div class="iconb">✓</div>
-        <div class="g"><div class="n">${esc(r.title)}</div>
-        <div class="m">${dd.getFullYear()}. ${fmtDate(dd)} (${DAY_KO[r.dk]}) · ${r.n}세트 완료</div></div></div>`;
-    }).join('') || '<div class="emptybox">아직 기록이 없습니다.</div>';
-
-    el('viewHome').innerHTML = monthHtml + `
-      <div class="card">
-        <div class="weeknav">
-          <button class="navb" onclick="App.shiftWeek(-1)">‹ 이전</button>
-          <b>${weekLabel(this.viewMonday)} · ${wkKey}</b>
-          <button class="navb" onclick="App.shiftWeek(1)">다음 ›</button>
+      routinesHtml += `
+        <div class="routine-card" onclick="App.startSession('${todayStr}', '${p.id}')">
+          <div class="routine-header">
+            <span class="routine-title">${esc(p.title)}</span>
+            <span style="font-size:12px; color:var(--sky-500); font-weight:800;">시작하기 ▶</span>
+          </div>
+          <div class="routine-desc">${esc(p.desc)}</div>
+          <div class="routine-meta">${exCount}개 | ${esc(exNames)}</div>
         </div>
-        <div class="weekbar">${cal}</div>
-        ${!isThisWeek ? '<div class="tiny" style="margin-top:8px">※ 이번 주가 아닙니다. 날짜를 눌러 해당 일자 기록을 확인·입력할 수 있습니다.</div>' : ''}
+      `;
+    });
+
+    let homeHtml = monthHtml + `
+      <div class="card">
+        <h2>수행할 루틴 선택</h2>
+        <div class="muted" style="margin-bottom:12px;">원하는 루틴을 선택해 오늘의 운동을 시작하세요. 루틴 편집 탭에서 템플릿을 수정할 수 있습니다.</div>
+        ${routinesHtml}
+        <button class="btn ghost sm" onclick="App.go('program')" style="margin-top:8px;">➕ 새로운 루틴 만들기</button>
       </div>
-      ${sessionCard}
-      <div class="card"><h2>최근 완료된 세션</h2>${recHtml}</div>
     `;
-  },
 
-  weeksDesc() { return Object.keys(Store.s.logs).sort().reverse(); },
-  shiftWeek(n) { this.viewMonday = addDays(this.viewMonday, n * 7); this.render(); },
-
-  openDay(week, day) {
-    if (dayTotalSets(day) === 0) { toast('휴식일입니다'); return; }
-    this.startSession(week, day, true);
+    // 진행 중인 세션 표시
+    if (this.cur && this.cur.date === todayStr) {
+      const p = Store.s.programs.find(x => x.id === this.cur.programId);
+      if (p) {
+        homeHtml = `
+          <div class="card" style="border: 2px solid var(--sky-400);">
+            <h2>진행 중인 세션</h2>
+            <div style="font-size:15px; font-weight:800; margin-bottom:12px;">${esc(p.title)}</div>
+            <button class="btn" onclick="App.go('workout')">이어서 하기</button>
+          </div>
+        ` + homeHtml;
+      }
+    }
+    
+    el('viewHome').innerHTML = homeHtml;
   },
 
   /* ---------- 세션 ---------- */
-  startSession(week, day, silent) {
-    this.cur = { week, day };
-    const log = getDayLog(week, day, true);
-    if (!log.startedAt) {
-      log.startedAt = Date.now();
-      const mon = this.mondayOfWeekKey(week);
-      log.date = addDays(mon, DAY_KEYS.indexOf(day)).toISOString().slice(0, 10);
+  startSession(dateStr, programId) {
+    if (this.cur && this.cur.date === dateStr && this.cur.programId !== programId) {
+      if (!confirm('현재 진행 중인 다른 세션 기록이 덮어씌워질 수 있습니다. 계속하시겠습니까?')) return;
     }
-    Store.s.session = { week, day, startedAt: log.startedAt };
+    this.cur = { date: dateStr, programId };
+    const log = getLog(dateStr, true);
+    if (!log.startedAt || log.programId !== programId) {
+      log.programId = programId;
+      log.startedAt = Date.now();
+      // 기존 다른 프로그램 세트 초기화
+      log.sets = {}; 
+    }
+    Store.s.session = { date: dateStr, programId, startedAt: log.startedAt };
     Store.save();
-    if (!silent) this.requestWakeLock();
+    this.requestWakeLock();
     this.go('workout');
-  },
-
-  mondayOfWeekKey(wk) {
-    const [y, w] = wk.split('-W').map(Number);
-    const jan4 = new Date(y, 0, 4);
-    const mon1 = mondayOf(jan4);
-    return addDays(mon1, (w - 1) * 7);
   },
 
   finishSession() {
     if (!this.cur) { this.go('home'); return; }
-    const log = getDayLog(this.cur.week, this.cur.day, true);
+    const log = getLog(this.cur.date, true);
     log.endedAt = Date.now();
     Store.s.session = null;
     Store.save();
     this.releaseWakeLock();
-    const n = dayDone(this.cur.week, this.cur.day);
+    const n = dayDone(this.cur.date);
     toast(`세션 종료 · ${n}세트 완료`);
     this.cur = null;
     this.go('home');
@@ -644,23 +575,37 @@ const App = {
         <button class="btn" onclick="App.go('home')">홈으로</button></div>`;
       return;
     }
-    const { week, day } = this.cur;
-    const prog = Store.s.program[day];
-    const log = getDayLog(week, day, true);
-    const total = dayTotalSets(day), done = dayDone(week, day);
+    const { date, programId } = this.cur;
+    const prog = Store.s.programs.find(x => x.id === programId);
+    if (!prog) return this.go('home');
+
+    const log = getLog(date, true);
+    const total = progTotalSets(programId), done = dayDone(date);
     const elapsed = log.startedAt ? (Date.now() - log.startedAt) / 1000 : 0;
     const uLabel = Store.s.settings.unit || 'kg';
-    el('hSub').textContent = `${esc(prog.title)} · ${week}`;
+    
+    el('hSub').textContent = `${esc(prog.title)}`;
 
-    let html = `<div class="sessbar">
-      <div><div class="l">세션 경과</div><div class="v" id="sessT">${hhmmss(elapsed)}</div></div>
-      <div style="text-align:center"><div class="l">완료</div><div class="v">${done}/${total}</div></div>
-      <div style="text-align:right"><div class="l">진행률</div><div class="v">${total ? Math.round(done / total * 100) : 0}%</div></div>
-    </div>`;
+    let html = `
+      ${CardioEngine.renderDashboard()}
+      <div class="sessbar">
+        <div><div class="l">세션 경과</div><div class="v" id="sessT">${hhmmss(elapsed)}</div></div>
+        <div style="text-align:center"><div class="l">완료</div><div class="v">${done}/${total}</div></div>
+        <div style="text-align:right"><div class="l">진행률</div><div class="v">${total ? Math.round(done / total * 100) : 0}%</div></div>
+      </div>
+    `;
 
     prog.items.forEach((e, ei) => {
-      const tg = Engine.targets(e, week);
+      const tg = Engine.targets(e, date);
       const rec = log.sets[e.id] || [];
+      const prev = Engine.prevRecord(e.id, date); // 저번 운동 기록 가져오기
+      
+      let prevText = '이전 기록 없음';
+      if (prev && prev.sets && prev.sets.length > 0) {
+        const lastSet = prev.sets[prev.sets.length - 1]; // 마지막 완료된 세트 참조
+        if(lastSet && lastSet.w) prevText = `저번 운동: ${lastSet.w}${uLabel} × ${lastSet.reps}회`;
+      }
+
       let rows = `<div class="setrow head"><span></span><span>무게(${uLabel})</span><span>${e.mode === 'restpause' ? '총 반복' : '반복'}</span><span>${e.mode === 'restpause' ? '—' : 'RIR'}</span><span>완료</span></div>`;
       for (let i = 0; i < e.sets; i++) {
         const r = rec[i] || {};
@@ -684,35 +629,28 @@ const App = {
       const firstT = tg[0] ? tg[0].text : '';
       const allSame = tg.every(x => x.text === firstT);
       const tgtHtml = allSame
-        ? `<div class="target">목표 ${esc(firstT)}</div>`
-        : `<div class="target">${tg.map((x, i) => `${i + 1}세트 ${esc(x.text)}`).join(' <span>/</span> ')}</div>`;
+        ? `<div class="target">자동 처방: ${esc(firstT)}</div>`
+        : `<div class="target">${tg.map((x, i) => `${i + 1}세트: ${esc(x.text)}`).join('<br>')}</div>`;
 
       html += `<div class="card">
         <div class="exhead">
           <div style="flex:1;min-width:0">
             <div class="exname">${esc(e.name)}</div>
-            <div class="exmeta">${esc(e.equip)}${e.lift ? ' · ' + esc(e.lift) : ''} · 휴식 ${mmss(e.rest)}${e.note ? ' · ' + esc(e.note) : ''}</div>
+            <div class="exmeta">${esc(e.equip)}${e.lift ? ' · ' + esc(e.lift) : ''} · 휴식 ${mmss(e.rest)}</div>
+            <div class="prev-record">📌 ${prevText}</div>
           </div>
-          <button class="iconb" onclick="App.editExercise('${day}',${ei})">✎</button>
         </div>
         ${tgtHtml}
         ${rows}
         <div class="btnrow" style="margin-top:9px">
-          <button class="btn ghost sm" onclick="App.changeSets('${day}',${ei},1)">＋ 세트</button>
-          <button class="btn ghost sm" onclick="App.changeSets('${day}',${ei},-1)">－ 세트</button>
           <button class="btn ghost sm" onclick="App.restFor('${e.id}')">휴식 ${mmss(e.rest)}</button>
-          <button class="btn ghost sm" onclick="App.changeRest('${day}',${ei},-15)">휴식 −15초</button>
-          <button class="btn ghost sm" onclick="App.changeRest('${day}',${ei},15)">＋15초</button>
+          <button class="btn ghost sm" onclick="App.changeRest('${programId}',${ei},-15)">휴식 −15초</button>
+          <button class="btn ghost sm" onclick="App.changeRest('${programId}',${ei},15)">＋15초</button>
         </div>
       </div>`;
     });
 
     html += `<div class="card">
-      <div class="btnrow">
-        <button class="btn ghost sm" onclick="App.addExercise('${day}')">＋ 운동 추가</button>
-        <button class="btn ghost sm" onclick="App.go('program')">새로운 세트 만들기(루틴 편집)</button>
-      </div>
-      <div style="height:9px"></div>
       <button class="btn" onclick="App.finishSession()">세션 저장 및 종료</button>
       <div class="tiny" style="margin-top:8px;text-align:center">종료 후 Zone2 ${Store.s.settings.cardioMin}분 어떠신가요?</div>
     </div>`;
@@ -720,8 +658,8 @@ const App = {
   },
 
   setVal(exId, idx, field, val) {
-    const { week, day } = this.cur;
-    const log = getDayLog(week, day, true);
+    const { date } = this.cur;
+    const log = getLog(date, true);
     if (!log.sets[exId]) log.sets[exId] = [];
     while (log.sets[exId].length <= idx) log.sets[exId].push({});
     const s = log.sets[exId][idx];
@@ -730,16 +668,17 @@ const App = {
   },
 
   toggleSet(exId, idx) {
-    const { week, day } = this.cur;
-    const e = findExById(exId);
-    const log = getDayLog(week, day, true);
+    const { date, programId } = this.cur;
+    const prog = Store.s.programs.find(x => x.id === programId);
+    const e = prog.items.find(x => x.id === exId);
+    const log = getLog(date, true);
     if (!log.sets[exId]) log.sets[exId] = [];
     while (log.sets[exId].length <= idx) log.sets[exId].push({});
     const s = log.sets[exId][idx];
     if (s.done) {
       s.done = false; Store.save(); this.renderWorkout(); return;
     }
-    const tg = Engine.targets(e, week)[idx] || {};
+    const tg = Engine.targets(e, date)[idx] || {};
     if (s.w == null || s.w === '') s.w = tg.w || 0;
     if (s.reps == null || s.reps === '') s.reps = tg.reps || 0;
     if (s.rir == null) s.rir = e.mode === 'restpause' ? 0 : e.rir;
@@ -752,23 +691,18 @@ const App = {
   },
 
   restFor(exId) {
-    const e = findExById(exId);
+    const prog = Store.s.programs.find(x => x.id === this.cur.programId);
+    const e = prog.items.find(x => x.id === exId);
     if (e) this.startRest(e.rest, e.name);
   },
 
-  changeRest(day, ei, delta) {
-    const e = Store.s.program[day].items[ei];
+  changeRest(pId, ei, delta) {
+    const p = Store.s.programs.find(x => x.id === pId);
+    const e = p.items[ei];
     e.rest = Math.max(0, e.rest + delta);
     Store.save();
     this.render();
     toast(`휴식 ${mmss(e.rest)}`);
-  },
-
-  changeSets(day, ei, delta) {
-    const e = Store.s.program[day].items[ei];
-    e.sets = Math.max(1, Math.min(10, e.sets + delta));
-    Store.save();
-    this.render();
   },
 
   /* ---------- 휴식 타이머 ---------- */
@@ -806,7 +740,7 @@ const App = {
       }
     }
     if (this.tab === 'workout' && this.cur) {
-      const log = getDayLog(this.cur.week, this.cur.day, false);
+      const log = getLog(this.cur.date, false);
       const n = el('sessT');
       if (log && log.startedAt && n) n.textContent = hhmmss((Date.now() - log.startedAt) / 1000);
     }
@@ -856,66 +790,93 @@ const App = {
   },
   releaseWakeLock() { try { if (this._wl) { this._wl.release(); this._wl = null; } } catch (e) { } },
 
-  /* ---------- 루틴 편집 ---------- */
+  /* ---------- 루틴 템플릿 편집 ---------- */
   renderProgram() {
-    el('hSub').textContent = '요일별 루틴 · 상체/하체 분할 기반';
+    el('hSub').textContent = '저장된 템플릿 (자유 운동)';
     let html = '';
-    DAY_KEYS.forEach(dk => {
-      const p = Store.s.program[dk];
+    Store.s.programs.forEach((p, pIdx) => {
       const items = (p.items || []).map((e, i) => `
         <div class="exitem">
           <div class="iconb">${i + 1}</div>
           <div class="g"><div class="n">${esc(e.name)}</div>
             <div class="m">${e.sets}세트 · ${e.mode === 'restpause' ? '총 ' : ''}${e.repLo}~${e.repHi}회 · RIR${e.rir} · ${mmss(e.rest)}${e.lift ? ' · ' + esc(e.lift) : ''}</div></div>
-          <button class="iconb" onclick="App.moveExercise('${dk}',${i},-1)">↑</button>
-          <button class="iconb" onclick="App.editExercise('${dk}',${i})">✎</button>
-          <button class="iconb del" onclick="App.deleteExercise('${dk}',${i})">✕</button>
-        </div>`).join('') || '<div class="emptybox">운동이 없습니다 (휴식일)</div>';
+          <button class="iconb" onclick="App.moveExercise('${p.id}',${i},-1)">↑</button>
+          <button class="iconb" onclick="App.editExercise('${p.id}',${i})">✎</button>
+          <button class="iconb del" onclick="App.deleteExercise('${p.id}',${i})">✕</button>
+        </div>`).join('') || '<div class="emptybox">운동이 없습니다</div>';
       html += `<div class="card">
-        <h2>${DAY_KO[dk]}요일
-          <button class="pill blue" onclick="App.renameDay('${dk}')">${esc(p.title)} ✎</button></h2>
+        <h2>
+          <span>${esc(p.title)}</span>
+          <div style="display:flex; gap:4px;">
+            <button class="pill blue" onclick="App.renameProgram('${p.id}')">이름변경</button>
+            <button class="pill red" onclick="App.deleteProgram('${p.id}')">삭제</button>
+          </div>
+        </h2>
+        <div class="muted" style="margin-bottom:8px;">${esc(p.desc)}</div>
         ${items}
         <div style="height:9px"></div>
-        <button class="btn ghost sm" onclick="App.addExercise('${dk}')">＋ 운동 추가</button>
+        <button class="btn ghost sm" onclick="App.addExercise('${p.id}')">＋ 운동 추가</button>
       </div>`;
     });
     html += `<div class="card">
-      <h2>루틴 초기화</h2>
-      <div class="muted" style="margin-bottom:9px">기본 세팅된 6일 분할(상체1~3, 하체1~3)로 되돌립니다.</div>
-      <button class="btn danger sm" onclick="App.resetProgram()">기본 루틴으로 복원</button>
+      <button class="btn" onclick="App.createProgram()">➕ 새 루틴 템플릿 만들기</button>
+      <div style="height:12px"></div>
+      <button class="btn danger sm" onclick="App.resetProgram()">기본 템플릿으로 복원</button>
     </div>`;
     el('viewProgram').innerHTML = html;
   },
 
-  renameDay(dk) {
-    const cur = Store.s.program[dk].title;
-    const v = prompt('세션 이름', cur);
-    if (v == null) return;
-    Store.s.program[dk].title = v.trim() || cur;
+  createProgram() {
+    const title = prompt('새 루틴 이름', '새로운 자유 운동');
+    if (!title) return;
+    const desc = prompt('루틴 설명 (부위 등)', '가슴, 어깨 등');
+    Store.s.programs.push({
+      id: 'p' + Math.random().toString(36).slice(2, 9),
+      title: title.trim(),
+      desc: (desc || '').trim(),
+      items: []
+    });
     Store.save(); this.render();
   },
 
-  moveExercise(dk, i, d) {
-    const arr = Store.s.program[dk].items;
+  renameProgram(pId) {
+    const p = Store.s.programs.find(x => x.id === pId);
+    const v = prompt('루틴 이름', p.title);
+    if (!v) return;
+    p.title = v.trim();
+    Store.save(); this.render();
+  },
+
+  deleteProgram(pId) {
+    if (!confirm('이 루틴 템플릿을 삭제할까요? (과거 기록은 남습니다)')) return;
+    Store.s.programs = Store.s.programs.filter(x => x.id !== pId);
+    Store.save(); this.render();
+  },
+
+  moveExercise(pId, i, d) {
+    const p = Store.s.programs.find(x => x.id === pId);
+    const arr = p.items;
     const j = i + d;
     if (j < 0 || j >= arr.length) return;
     [arr[i], arr[j]] = [arr[j], arr[i]];
     Store.save(); this.render();
   },
 
-  deleteExercise(dk, i) {
-    const e = Store.s.program[dk].items[i];
-    if (!confirm(`"${e.name}"을(를) 삭제할까요?\n(지난 기록은 남습니다)`)) return;
-    Store.s.program[dk].items.splice(i, 1);
+  deleteExercise(pId, i) {
+    const p = Store.s.programs.find(x => x.id === pId);
+    const e = p.items[i];
+    if (!confirm(`"${e.name}"을(를) 삭제할까요?`)) return;
+    p.items.splice(i, 1);
     Store.save(); this.render();
   },
 
-  addExercise(dk) { this.exerciseForm(dk, -1); },
-  editExercise(dk, i) { this.exerciseForm(dk, i); },
+  addExercise(pId) { this.exerciseForm(pId, -1); },
+  editExercise(pId, i) { this.exerciseForm(pId, i); },
 
-  exerciseForm(dk, idx) {
+  exerciseForm(pId, idx) {
+    const p = Store.s.programs.find(x => x.id === pId);
     const isNew = idx < 0;
-    const e = isNew ? ex({ name: '' }) : Store.s.program[dk].items[idx];
+    const e = isNew ? ex({ name: '' }) : p.items[idx];
     const opt = (v, cur) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${v || '없음'}</option>`;
     const html = `
       <div class="field"><label>운동 이름</label>
@@ -944,19 +905,15 @@ const App = {
         <option value="near" ${e.round === 'near' ? 'selected' : ''}>가까운 단위로</option>
         <option value="floor" ${e.round === 'floor' ? 'selected' : ''}>내림 (백오프·기술 세트)</option>
       </select></div>
-      <div class="field"><label>메모</label><input id="fNote" value="${esc(e.note || '')}"></div>
-      <div class="tiny" style="margin-bottom:10px">
-        레스트포즈로 두면 RIR을 쓰지 않고 <b>고정 중량에서의 총 반복수</b>로 진행합니다.
-      </div>
       <div class="btnrow">
         <button class="btn ghost sm" onclick="closeModal()">취소</button>
-        <button class="btn sm" onclick="App.saveExercise('${dk}',${idx})">저장</button>
+        <button class="btn sm" onclick="App.saveExercise('${pId}',${idx})">저장</button>
       </div>`;
     modal(isNew ? '운동 추가' : '운동 편집', html);
     this._draft = e;
   },
 
-  saveExercise(dk, idx) {
+  saveExercise(pId, idx) {
     const g = id => el(id).value;
     const e = this._draft;
     const name = g('fName').trim();
@@ -971,77 +928,62 @@ const App = {
     e.rest = Math.max(0, +g('fRest') || 0);
     e.mode = g('fMode');
     e.round = g('fRound');
-    e.note = g('fNote').trim();
-    if (idx < 0) Store.s.program[dk].items.push(e);
-    else Store.s.program[dk].items[idx] = e;
+    
+    const p = Store.s.programs.find(x => x.id === pId);
+    if (idx < 0) p.items.push(e);
+    else p.items[idx] = e;
     Store.save(); closeModal(); this.render();
     toast('저장되었습니다');
   },
 
   resetProgram() {
-    if (!confirm('기본 분할(상체1~3, 하체1~3) 루틴으로 되돌릴까요?')) return;
-    Store.s.program = defaultProgram();
-    Store.save(); this.render(); toast('기본 루틴 복원');
+    if (!confirm('기본 템플릿으로 되돌릴까요? 기존 템플릿은 모두 지워집니다.')) return;
+    Store.s.programs = defaultPrograms();
+    Store.save(); this.render(); toast('기본 템플릿 복원');
   },
 
   /* ---------- 기록 ---------- */
   renderStats() {
-    el('hSub').textContent = '주차별 누적 · e1RM 추이';
-    const weeks = Object.keys(Store.s.logs).sort();
+    el('hSub').textContent = '날짜별 누적 기록';
+    const dates = Engine.datesSorted();
     const uLabel = Store.s.settings.unit || 'kg';
-    if (!weeks.length) {
+    if (!dates.length) {
       el('viewStats').innerHTML = `<div class="card"><div class="emptybox">
         아직 기록이 없습니다.<br><span class="tiny">세션을 완료하면 여기에 쌓입니다.</span></div></div>`;
       return;
     }
-    const nextWeek = isoWeekKey(addDays(new Date(), 7));
-    let html = '<div class="card"><h2>메인 리프트 e1RM</h2>';
-    ['스쿼트', '벤치프레스', '데드리프트'].forEach(lift => {
-      const series = weeks.map(w => Engine.bestE1(w, lift)).filter(v => v > 0);
-      const base = Store.s.settings.baseline[lift];
-      const b0 = e1rmOf(base.w, base.reps, base.rir);
-      const applied = Engine.appliedE1(lift, nextWeek);
-      const mx = Math.max(b0, ...series, 1);
-      const bars = [b0].concat(series).map((v, i, a) =>
-        `<i class="${i === a.length - 1 ? 'last' : ''}" style="height:${Math.max(4, v / mx * 100)}%"></i>`).join('');
-      const diff = applied - b0;
-      html += `<div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <b style="font-size:13px">${lift}</b>
-          <span><b style="font-size:16px">${applied}</b><span class="tiny"> ${uLabel}</span>
-          <span class="pill ${diff > 0 ? 'green' : diff < 0 ? 'red' : 'blue'}">${diff >= 0 ? '+' : ''}${diff.toFixed(1)}</span></span>
-        </div>
-        <div class="spark">${bars}</div>
-        <div class="tiny">기준 ${b0.toFixed(1)}${uLabel} → 다음 주 적용 ${applied}${uLabel}</div>
-      </div>`;
-    });
-    html += '</div>';
-
-    weeks.slice().reverse().forEach(wk => {
-      const days = Store.s.logs[wk];
+    
+    let html = '';
+    dates.slice().reverse().forEach(d => {
+      const log = Store.s.logs[d];
+      if(!log || !log.sets) return;
+      
       let rows = '';
       let wkVol = 0, wkSets = 0;
-      DAY_KEYS.forEach(dk => {
-        const d = days[dk]; if (!d || !d.sets) return;
-        Object.entries(d.sets).forEach(([exId, arr]) => {
-          const e = findExById(exId);
-          const nm = e ? e.name : '(삭제된 운동)';
-          const done = (arr || []).filter(s => s && s.done);
-          if (!done.length) return;
-          const reps = done.reduce((a, s) => a + (+s.reps || 0), 0);
-          const vol = done.reduce((a, s) => a + (+s.reps || 0) * (+s.w || 0), 0);
-          wkVol += vol; wkSets += done.length;
-          rows += `<tr><td style="text-align:left">${esc(nm)}</td><td>${DAY_KO[dk]}</td>
-            <td>${done.length}</td><td>${reps}</td><td>${Math.round(vol).toLocaleString()}</td></tr>`;
-        });
+      
+      Object.entries(log.sets).forEach(([exId, arr]) => {
+        const e = findExById(exId);
+        const nm = e ? e.name : '(삭제된 운동)';
+        const done = (arr || []).filter(s => s && s.done);
+        if (!done.length) return;
+        const reps = done.reduce((a, s) => a + (+s.reps || 0), 0);
+        const vol = done.reduce((a, s) => a + (+s.reps || 0) * (+s.w || 0), 0);
+        wkVol += vol; wkSets += done.length;
+        rows += `<tr><td style="text-align:left">${esc(nm)}</td>
+          <td>${done.length}</td><td>${reps}</td><td>${Math.round(vol).toLocaleString()}</td></tr>`;
       });
+      
       if (!rows) return;
+      const p = Store.s.programs.find(x => x.id === log.programId);
+      const pTitle = p ? p.title : '삭제된 루틴';
+      
       html += `<div class="card">
-        <h2>${wk} <span class="pill blue">${wkSets}세트 · ${Math.round(wkVol).toLocaleString()}${uLabel}</span></h2>
-        <table class="hist"><thead><tr><th style="text-align:left">종목</th><th>요일</th><th>세트</th><th>총반복</th><th>볼륨</th></tr></thead>
+        <h2>${d} <span class="pill blue">${pTitle}</span></h2>
+        <div class="tiny" style="margin-bottom:8px;">총 ${wkSets}세트 · 볼륨 ${Math.round(wkVol).toLocaleString()}${uLabel}</div>
+        <table class="hist"><thead><tr><th style="text-align:left">종목</th><th>세트</th><th>총반복</th><th>볼륨</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
     });
-    el('viewStats').innerHTML = html;
+    el('viewStats').innerHTML = html || '<div class="card"><div class="emptybox">기록이 없습니다.</div></div>';
   },
 
   /* ---------- 설정 ---------- */
@@ -1071,8 +1013,8 @@ const App = {
       <div class="card"><h2>메인 리프트 기준 기록</h2>
         ${bl('스쿼트')}${bl('벤치프레스')}${bl('데드리프트')}
         <div class="grid2">
-          <div class="field"><label>주간 상승 상한(%)</label><input type="number" step="0.5" value="${(st.capUp * 100).toFixed(1)}" onchange="App.setSetting('capUp',this.value/100)"></div>
-          <div class="field"><label>주간 하락 상한(%)</label><input type="number" step="0.5" value="${(st.capDown * 100).toFixed(1)}" onchange="App.setSetting('capDown',this.value/100)"></div>
+          <div class="field"><label>증량 상한(%)</label><input type="number" step="0.5" value="${(st.capUp * 100).toFixed(1)}" onchange="App.setSetting('capUp',this.value/100)"></div>
+          <div class="field"><label>하락 상한(%)</label><input type="number" step="0.5" value="${(st.capDown * 100).toFixed(1)}" onchange="App.setSetting('capDown',this.value/100)"></div>
         </div>
       </div>
 
@@ -1134,7 +1076,7 @@ const App = {
       r.onload = () => {
         try {
           const d = JSON.parse(r.result);
-          if (!d.program || !d.settings) throw 0;
+          if (!d.programs || !d.settings) throw 0;
           Store.s = d; Store.save(); toast('복원 완료'); this.go('home');
         } catch (e) { toast('파일을 읽을 수 없습니다'); }
       };
