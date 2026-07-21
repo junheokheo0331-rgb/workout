@@ -541,7 +541,7 @@ const App = {
       weekCalHtml += `<div class="daycell ${isToday ? 'today' : ''} ${isDone ? 'done' : ''}" onclick="App.openHistoryViewer('${iterStr}')">
         <div class="dw">${['일','월','화','수','목','금','토'][i]}</div>
         <div class="dd">${d.getDate()}</div>
-        <div class="tag">${isDone ? '기록됨' : '구경'}</div>
+        <div class="tag">${isDone ? '기록됨' : ''}</div>
       </div>`;
     }
 
@@ -574,7 +574,7 @@ const App = {
         <div class="weekbar">${weekCalHtml}</div>
       </div>
       <div class="card">
-        <h2>수행할 2분할 루틴 선택</h2>
+        <h2>수행할 루틴 선택</h2>
         <div class="muted" style="margin-bottom:12px;">원하는 루틴을 선택해 오늘의 운동을 시작하세요.</div>
         ${routinesHtml}
         <button class="btn ghost sm" onclick="App.go('program')" style="margin-top:8px;">➕ 새로운 루틴 템플릿 만들기</button>
@@ -876,7 +876,7 @@ const App = {
   renderProgram() {
     if (this.editProgramId) return this.renderProgramDetail(this.editProgramId);
     
-    el('hSub').textContent = '2분할 6일 루틴 템플릿 편집';
+    el('hSub').textContent = '루틴 편집';
     let html = '';
     Store.s.programs.forEach(p => {
       const exCount = p.items.length;
