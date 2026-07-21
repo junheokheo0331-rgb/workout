@@ -33,7 +33,7 @@ const CardioEngine = {
   }
 };
 
-/* ---------- RPE ↔ %1RM 표 (Zourdos et al. 2016 / RTS) ---------- */
+/* ---------- RPE ↔ %1RM 표 ---------- */
 const RPE_COLS = [10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6];
 const RPE_TABLE = [
   [100.0, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3],
@@ -73,30 +73,7 @@ function repsAt(load, e1, rpe) {
 }
 
 /* ---------- 날짜 / ISO 주차 ---------- */
-const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-const DAY_KO = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
-function isoWeekKey(d) {
-  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - dayNum);
-  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-  const wk = Math.ceil(((t - y0) / 86400000 + 1) / 7);
-  return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
-}
-function mondayOf(d) {
-  const x = new Date(d);
-  const off = (x.getDay() + 6) % 7;
-  x.setDate(x.getDate() - off);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function dayKeyOf(d) { return DAY_KEYS[(d.getDay() + 6) % 7]; }
 function fmtDate(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
-function weekLabel(mon) {
-  const sun = addDays(mon, 6);
-  return `${mon.getFullYear()}. ${fmtDate(mon)} – ${fmtDate(sun)}`;
-}
 function mmss(sec) {
   sec = Math.max(0, Math.round(sec));
   const m = Math.floor(sec / 60), s = sec % 60;
@@ -107,47 +84,60 @@ function hhmmss(sec) {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
   return (h > 0 ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
 }
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
-/* ---------- 템플릿(자유 운동) 기반 기본 세팅 ---------- */
+/* ---------- 템플릿(자유 운동) 기반 기본 세팅 (상체 1,2,3 / 하체 1,2,3) ---------- */
 function ex(o) {
   return Object.assign({
     id: 'x' + Math.random().toString(36).slice(2, 9),
+    type: 'weight', // 'weight' 또는 'cardio'
+    targetMin: 30,  // 유산소용 (분)
     name: '', equip: '머신', lift: '', sets: 3, repLo: 8, repHi: 12,
     rir: 1, rest: 150, mode: 'normal', round: 'near', note: ''
   }, o);
 }
 function defaultPrograms() {
   return [
-    {
-      id: 'p1', title: '자유 운동 (가슴, 등)', desc: '상체 볼륨', items: [
-        ex({ name: '벤치프레스', equip: '바벨', lift: '벤치프레스', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 180 }),
-        ex({ name: '랫풀다운', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
-      ]
-    },
-    {
-      id: 'p2', title: '자유 운동 (하체)', desc: '스쿼트 중심', items: [
-        ex({ name: '스쿼트', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
+    { id: 'p1', title: 'Upper 1 (상체 1)', desc: '벤치프레스 톱세트 중심', items: [
+        ex({ name: '벤치프레스 (톱세트)', equip: '바벨', lift: '벤치프레스', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 210 }),
+        ex({ name: '벤치프레스 (백오프)', equip: '바벨', lift: '벤치프레스', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 180 }),
+        ex({ name: '머신 랫풀다운', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
+    ]},
+    { id: 'p2', title: 'Lower 1 (하체 1)', desc: '스쿼트 톱세트 중심', items: [
+        ex({ name: '백스쿼트 (톱세트)', equip: '바벨', lift: '스쿼트', sets: 1, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
+        ex({ name: '백스쿼트 (백오프)', equip: '바벨', lift: '스쿼트', sets: 3, repLo: 5, repHi: 8, rir: 2, rest: 210 }),
         ex({ name: '레그프레스', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 })
-      ]
-    },
-    {
-      id: 'p3', title: '자유 운동 (어깨, 팔)', desc: '오버헤드 프레스 외', items: [
+    ]},
+    { id: 'p3', title: 'Upper 2 (상체 2)', desc: '오버헤드 프레스 중심', items: [
         ex({ name: '오버헤드 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 1, rest: 180 }),
+        ex({ name: '시티드 케이블 로우', equip: '케이블', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 150 }),
+        ex({ name: '인클라인 덤벨 프레스', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 })
+    ]},
+    { id: 'p4', title: 'Lower 2 (하체 2)', desc: '데드리프트 중심', items: [
+        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 2, repLo: 3, repHi: 5, rir: 2, rest: 240 }),
+        ex({ name: '불가리안 스플릿 스쿼트', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
+        ex({ name: '라잉 레그컬', sets: 3, repLo: 10, repHi: 15, rir: 1, rest: 120 })
+    ]},
+    { id: 'p5', title: 'Upper 3 (상체 3)', desc: '인클라인 및 볼륨 중심', items: [
+        ex({ name: '인클라인 바벨 프레스', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
+        ex({ name: '원암 덤벨 로우', equip: '덤벨', sets: 3, repLo: 8, repHi: 12, rir: 1, rest: 150 }),
         ex({ name: '사이드 레터럴 레이즈', equip: '덤벨', sets: 4, repLo: 12, repHi: 20, rir: 0, rest: 90 })
-      ]
-    },
-    {
-      id: 'p4', title: '자유 운동 (전신)', desc: '데드리프트 외', items: [
-        ex({ name: '데드리프트', equip: '바벨', lift: '데드리프트', sets: 3, repLo: 3, repHi: 5, rir: 2, rest: 240 })
-      ]
-    }
+    ]},
+    { id: 'p6', title: 'Lower 3 (하체 3)', desc: '프론트 스쿼트 및 머신', items: [
+        ex({ name: '프론트 스쿼트', equip: '바벨', sets: 3, repLo: 6, repHi: 10, rir: 2, rest: 180 }),
+        ex({ name: '레그 익스텐션', sets: 3, repLo: 12, repHi: 15, rir: 0, rest: 120 }),
+        ex({ name: '카프 레이즈', sets: 4, repLo: 10, repHi: 15, rir: 0, rest: 90 })
+    ]}
   ];
 }
 
 /* ---------- 저장소 ---------- */
-const KEY = 'autoreg.v3'; // 스토리지 키 업데이트 (템플릿 구조 완전 변경)
+const KEY = 'autoreg.v4'; // 구조 업그레이드 (유산소 및 개별 루틴 추가 대응)
 const DEFAULT_STATE = () => ({
-  version: 3,
+  version: 4,
   settings: {
     isFirstRun: true, age: null, rhr: 70, unit: 'kg',
     unitBar: 10, unitMachine: 5, unitDumbbell: 2,
@@ -260,6 +250,9 @@ const Engine = {
   },
 
   targets(e, targetDate) {
+    if (e.type === 'cardio') {
+      return [{ w: '', reps: '', text: `유산소 ${e.targetMin}분 진행`, kind: 'cardio' }];
+    }
     const unit = this.unitFor(e);
     const uLabel = Store.s.settings.unit || 'kg';
     const out = [];
@@ -330,11 +323,8 @@ function dayDone(dateStr) {
 }
 function progTotalSets(pId) {
   const p = Store.s.programs.find(x => x.id === pId);
-  return p ? (p.items || []).reduce((a, e) => a + e.sets, 0) : 0;
-}
-function getTodayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  if (!p) return 0;
+  return p.items.reduce((a, e) => a + (e.type === 'cardio' ? 1 : e.sets), 0); // 유산소는 1세트로 취급
 }
 
 /* ---------- UI 헬퍼 ---------- */
@@ -365,6 +355,7 @@ function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remov
 const App = {
   tab: 'home',
   cur: null, // { date, programId }
+  editProgramId: null, // 루틴 편집 탭에서 특정 루틴을 열었을 때 사용
   tick: null,
 
   init() {
@@ -396,10 +387,7 @@ const App = {
   startFromSplash() {
     const splash = el('splashScreen');
     if (splash) splash.classList.add('hide-splash');
-    
-    if (Store.s.settings.isFirstRun) {
-      setTimeout(() => this.showInitialSetup(), 400);
-    }
+    if (Store.s.settings.isFirstRun) setTimeout(() => this.showInitialSetup(), 400);
   },
   
   showInitialSetup() {
@@ -451,8 +439,12 @@ const App = {
     });
     document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     el('hAction').textContent = tab === 'workout' ? '세션 종료' : '설정';
-    const T = { home: '오늘의 훈련', workout: '운동 중', program: '루틴 템플릿', stats: '기록', settings: '설정' };
+    const T = { home: '오늘의 훈련', workout: '운동 중', program: '루틴 편집', stats: '기록', settings: '설정' };
     el('hTitle').textContent = T[tab];
+    
+    // 루틴 탭 누를때마다 항상 목록뷰로 리셋
+    if (tab === 'program') this.editProgramId = null;
+    
     this.render();
     window.scrollTo(0, 0);
   },
@@ -470,14 +462,15 @@ const App = {
   renderHome() {
     const today = new Date();
     const todayStr = getTodayStr();
-    el('hSub').textContent = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    el('hSub').textContent = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${days[today.getDay()]}요일)`;
 
     // 1. 월간 캘린더 생성
     const year = today.getFullYear();
     const month = today.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const startOffset = (firstDay + 6) % 7; 
+    const startOffset = firstDay; 
     
     let monthHtml = `<div class="card"><h2>${month + 1}월 달력</h2><div class="monthly-cal">`;
     for(let i=0; i < startOffset; i++) monthHtml += `<div></div>`;
@@ -495,14 +488,14 @@ const App = {
     let routinesHtml = '';
     Store.s.programs.forEach(p => {
       const exCount = p.items.length;
-      let exNames = p.items.slice(0,2).map(e => e.name).join(', ');
-      if (exCount > 2) exNames += ' 외';
+      let exNames = p.items.slice(0,3).map(e => e.name).join(', ');
+      if (exCount > 3) exNames += ' 등';
       
       routinesHtml += `
         <div class="routine-card" onclick="App.startSession('${todayStr}', '${p.id}')">
           <div class="routine-header">
             <span class="routine-title">${esc(p.title)}</span>
-            <span style="font-size:12px; color:var(--sky-500); font-weight:800;">시작하기 ▶</span>
+            <span style="font-size:12px; color:var(--sky-600); font-weight:800;">불러와서 시작 ▶</span>
           </div>
           <div class="routine-desc">${esc(p.desc)}</div>
           <div class="routine-meta">${exCount}개 | ${esc(exNames)}</div>
@@ -513,9 +506,9 @@ const App = {
     let homeHtml = monthHtml + `
       <div class="card">
         <h2>수행할 루틴 선택</h2>
-        <div class="muted" style="margin-bottom:12px;">원하는 루틴을 선택해 오늘의 운동을 시작하세요. 루틴 편집 탭에서 템플릿을 수정할 수 있습니다.</div>
+        <div class="muted" style="margin-bottom:12px;">원하는 템플릿을 선택하여 오늘의 운동을 시작하세요.</div>
         ${routinesHtml}
-        <button class="btn ghost sm" onclick="App.go('program')" style="margin-top:8px;">➕ 새로운 루틴 만들기</button>
+        <button class="btn ghost sm" onclick="App.go('program')" style="margin-top:8px;">➕ 새로운 루틴 템플릿 만들기</button>
       </div>
     `;
 
@@ -525,7 +518,7 @@ const App = {
       if (p) {
         homeHtml = `
           <div class="card" style="border: 2px solid var(--sky-400);">
-            <h2>진행 중인 세션</h2>
+            <h2>현재 진행 중인 세션</h2>
             <div style="font-size:15px; font-weight:800; margin-bottom:12px;">${esc(p.title)}</div>
             <button class="btn" onclick="App.go('workout')">이어서 하기</button>
           </div>
@@ -546,8 +539,7 @@ const App = {
     if (!log.startedAt || log.programId !== programId) {
       log.programId = programId;
       log.startedAt = Date.now();
-      // 기존 다른 프로그램 세트 초기화
-      log.sets = {}; 
+      log.sets = {}; // 새 루틴 시작시 오늘 세트 초기화
     }
     Store.s.session = { date: dateStr, programId, startedAt: log.startedAt };
     Store.save();
@@ -598,34 +590,55 @@ const App = {
     prog.items.forEach((e, ei) => {
       const tg = Engine.targets(e, date);
       const rec = log.sets[e.id] || [];
-      const prev = Engine.prevRecord(e.id, date); // 저번 운동 기록 가져오기
+      const prev = Engine.prevRecord(e.id, date);
       
       let prevText = '이전 기록 없음';
       if (prev && prev.sets && prev.sets.length > 0) {
-        const lastSet = prev.sets[prev.sets.length - 1]; // 마지막 완료된 세트 참조
-        if(lastSet && lastSet.w) prevText = `저번 운동: ${lastSet.w}${uLabel} × ${lastSet.reps}회`;
+        const lastSet = prev.sets[prev.sets.length - 1]; 
+        if(e.type === 'cardio') prevText = `저번 운동: 완료`;
+        else if(lastSet && lastSet.w) prevText = `저번 운동: ${lastSet.w}${uLabel} × ${lastSet.reps}회`;
       }
 
-      let rows = `<div class="setrow head"><span></span><span>무게(${uLabel})</span><span>${e.mode === 'restpause' ? '총 반복' : '반복'}</span><span>${e.mode === 'restpause' ? '—' : 'RIR'}</span><span>완료</span></div>`;
-      for (let i = 0; i < e.sets; i++) {
-        const r = rec[i] || {};
-        const t = tg[i] || {};
+      let rows = '';
+      
+      // 유산소 운동 렌더링
+      if (e.type === 'cardio') {
+        const r = rec[0] || {};
         const dn = !!r.done;
-        rows += `<div class="setrow ${dn ? 'done' : ''}">
-          <div class="setno">${i + 1}</div>
-          <input type="number" inputmode="decimal" step="any" placeholder="${t.w || '-'}" value="${r.w != null ? r.w : ''}"
-            onchange="App.setVal('${e.id}',${i},'w',this.value)">
-          <input type="number" inputmode="numeric" placeholder="${t.reps || '-'}" value="${r.reps != null ? r.reps : ''}"
-            onchange="App.setVal('${e.id}',${i},'reps',this.value)">
-          ${e.mode === 'restpause'
-            ? `<div class="tiny" style="text-align:center">실패<br>기준</div>`
-            : `<select onchange="App.setVal('${e.id}',${i},'rir',this.value)">${
-                [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5].map(v =>
-                  `<option value="${v}" ${(r.rir != null ? +r.rir : e.rir) === v ? 'selected' : ''}>${v}</option>`).join('')
-              }</select>`}
-          <button class="chk ${dn ? 'on' : ''}" onclick="App.toggleSet('${e.id}',${i})">✓</button>
+        rows += `<div class="setrow head"><span></span><span style="grid-column: 2 / span 3;">유산소 진행</span><span>완료</span></div>
+        <div class="setrow ${dn ? 'done' : ''}">
+          <div class="setno">1</div>
+          <div style="grid-column: 2 / span 3; text-align: center; font-weight: 800; color: var(--sky-700);">
+            목표: ${e.targetMin}분
+            <button class="btn ghost sm" style="display:inline-block; width:auto; padding:5px 12px; margin-left:12px;" onclick="App.startRest(${e.targetMin * 60}, '${e.name} 진행중')">⏱ 타이머</button>
+          </div>
+          <button class="chk ${dn ? 'on' : ''}" onclick="App.toggleSet('${e.id}',0)">✓</button>
         </div>`;
+      } 
+      // 웨이트 트레이닝 렌더링
+      else {
+        rows += `<div class="setrow head"><span></span><span>무게(${uLabel})</span><span>${e.mode === 'restpause' ? '총 반복' : '반복'}</span><span>${e.mode === 'restpause' ? '—' : 'RIR'}</span><span>완료</span></div>`;
+        for (let i = 0; i < e.sets; i++) {
+          const r = rec[i] || {};
+          const t = tg[i] || {};
+          const dn = !!r.done;
+          rows += `<div class="setrow ${dn ? 'done' : ''}">
+            <div class="setno">${i + 1}</div>
+            <input type="number" inputmode="decimal" step="any" placeholder="${t.w || '-'}" value="${r.w != null ? r.w : ''}"
+              onchange="App.setVal('${e.id}',${i},'w',this.value)">
+            <input type="number" inputmode="numeric" placeholder="${t.reps || '-'}" value="${r.reps != null ? r.reps : ''}"
+              onchange="App.setVal('${e.id}',${i},'reps',this.value)">
+            ${e.mode === 'restpause'
+              ? `<div class="tiny" style="text-align:center">실패<br>기준</div>`
+              : `<select onchange="App.setVal('${e.id}',${i},'rir',this.value)">${
+                  [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5].map(v =>
+                    `<option value="${v}" ${(r.rir != null ? +r.rir : e.rir) === v ? 'selected' : ''}>${v}</option>`).join('')
+                }</select>`}
+            <button class="chk ${dn ? 'on' : ''}" onclick="App.toggleSet('${e.id}',${i})">✓</button>
+          </div>`;
+        }
       }
+
       const firstT = tg[0] ? tg[0].text : '';
       const allSame = tg.every(x => x.text === firstT);
       const tgtHtml = allSame
@@ -636,21 +649,24 @@ const App = {
         <div class="exhead">
           <div style="flex:1;min-width:0">
             <div class="exname">${esc(e.name)}</div>
-            <div class="exmeta">${esc(e.equip)}${e.lift ? ' · ' + esc(e.lift) : ''} · 휴식 ${mmss(e.rest)}</div>
+            <div class="exmeta">${e.type==='cardio'?'유산소':esc(e.equip)}${e.lift ? ' · ' + esc(e.lift) : ''} · 휴식 ${mmss(e.rest)}</div>
             <div class="prev-record">📌 ${prevText}</div>
           </div>
+          <button class="iconb" onclick="App.editExercise('${programId}',${ei})">✎</button>
         </div>
         ${tgtHtml}
         ${rows}
+        ${e.type === 'weight' ? `
         <div class="btnrow" style="margin-top:9px">
+          <button class="btn ghost sm" onclick="App.changeSets('${programId}',${ei},1)">＋ 세트</button>
+          <button class="btn ghost sm" onclick="App.changeSets('${programId}',${ei},-1)">－ 세트</button>
           <button class="btn ghost sm" onclick="App.restFor('${e.id}')">휴식 ${mmss(e.rest)}</button>
-          <button class="btn ghost sm" onclick="App.changeRest('${programId}',${ei},-15)">휴식 −15초</button>
-          <button class="btn ghost sm" onclick="App.changeRest('${programId}',${ei},15)">＋15초</button>
-        </div>
+        </div>` : ''}
       </div>`;
     });
 
     html += `<div class="card">
+      <button class="btn ghost" onclick="App.addExercise('${programId}')" style="margin-bottom:12px;">➕ 현재 세션에 운동 추가하기</button>
       <button class="btn" onclick="App.finishSession()">세션 저장 및 종료</button>
       <div class="tiny" style="margin-top:8px;text-align:center">종료 후 Zone2 ${Store.s.settings.cardioMin}분 어떠신가요?</div>
     </div>`;
@@ -675,16 +691,23 @@ const App = {
     if (!log.sets[exId]) log.sets[exId] = [];
     while (log.sets[exId].length <= idx) log.sets[exId].push({});
     const s = log.sets[exId][idx];
+    
     if (s.done) {
       s.done = false; Store.save(); this.renderWorkout(); return;
     }
+    
+    if (e.type === 'cardio') {
+      s.done = true; s.at = Date.now();
+      Store.save(); this.renderWorkout(); return;
+    }
+    
     const tg = Engine.targets(e, date)[idx] || {};
     if (s.w == null || s.w === '') s.w = tg.w || 0;
     if (s.reps == null || s.reps === '') s.reps = tg.reps || 0;
     if (s.rir == null) s.rir = e.mode === 'restpause' ? 0 : e.rir;
     if (!s.w || !s.reps) { toast('무게와 반복을 입력하세요'); return; }
-    s.done = true;
-    s.at = Date.now();
+    
+    s.done = true; s.at = Date.now();
     Store.save();
     this.renderWorkout();
     if (Store.s.settings.autoRest) this.startRest(e.rest, e.name);
@@ -696,21 +719,17 @@ const App = {
     if (e) this.startRest(e.rest, e.name);
   },
 
-  changeRest(pId, ei, delta) {
+  changeSets(pId, ei, delta) {
     const p = Store.s.programs.find(x => x.id === pId);
     const e = p.items[ei];
-    e.rest = Math.max(0, e.rest + delta);
-    Store.save();
-    this.render();
-    toast(`휴식 ${mmss(e.rest)}`);
+    e.sets = Math.max(1, Math.min(10, e.sets + delta));
+    Store.save(); this.render();
   },
 
   /* ---------- 휴식 타이머 ---------- */
   startRest(sec, label) {
     Store.s.timer = { endsAt: Date.now() + sec * 1000, total: sec, label: label || '휴식', fired: false };
-    Store.save();
-    this.renderRest();
-    this.requestWakeLock();
+    Store.save(); this.renderRest(); this.requestWakeLock();
   },
   restAdd(n) {
     const t = Store.s.timer; if (!t) return;
@@ -727,7 +746,7 @@ const App = {
     const left = (t.endsAt - Date.now()) / 1000;
     const over = left <= 0;
     bar.classList.toggle('over', over);
-    el('restLbl').textContent = over ? `${t.label} · 휴식 완료 — 다음 세트` : `${t.label} 휴식`;
+    el('restLbl').textContent = over ? `${t.label} · 완료` : `${t.label}`;
     el('restT').textContent = over ? '+' + mmss(-left) : mmss(left);
     el('restProg').style.width = over ? '100%' : Math.max(0, Math.min(100, (1 - left / t.total) * 100)) + '%';
   },
@@ -735,9 +754,7 @@ const App = {
     const t = Store.s.timer;
     if (t) {
       this.renderRest();
-      if (!t.fired && Date.now() >= t.endsAt) {
-        t.fired = true; Store.save(); this.alarm(t.label);
-      }
+      if (!t.fired && Date.now() >= t.endsAt) { t.fired = true; Store.save(); this.alarm(t.label); }
     }
     if (this.tab === 'workout' && this.cur) {
       const log = getLog(this.cur.date, false);
@@ -758,11 +775,11 @@ const App = {
     if (st.notify && 'Notification' in window && Notification.permission === 'granted') {
       try {
         if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-          navigator.serviceWorker.ready.then(r => r.showNotification('휴식 완료', {
-            body: `${label} — 다음 세트를 시작하세요`, tag: 'rest', renotify: true,
+          navigator.serviceWorker.ready.then(r => r.showNotification('타이머 완료', {
+            body: `${label}`, tag: 'rest', renotify: true,
             icon: 'icon-192.png', badge: 'icon-192.png', vibrate: [200, 100, 200]
           })).catch(() => { });
-        } else new Notification('휴식 완료', { body: label });
+        } else new Notification('타이머 완료', { body: label });
       } catch (e) { }
     }
   },
@@ -790,40 +807,68 @@ const App = {
   },
   releaseWakeLock() { try { if (this._wl) { this._wl.release(); this._wl = null; } } catch (e) { } },
 
-  /* ---------- 루틴 템플릿 편집 ---------- */
+  /* ---------- 루틴 템플릿 목록/편집 ---------- */
   renderProgram() {
-    el('hSub').textContent = '저장된 템플릿 (자유 운동)';
+    if (this.editProgramId) return this.renderProgramDetail(this.editProgramId);
+    
+    el('hSub').textContent = '저장된 자유 운동 템플릿';
     let html = '';
-    Store.s.programs.forEach((p, pIdx) => {
-      const items = (p.items || []).map((e, i) => `
-        <div class="exitem">
-          <div class="iconb">${i + 1}</div>
-          <div class="g"><div class="n">${esc(e.name)}</div>
-            <div class="m">${e.sets}세트 · ${e.mode === 'restpause' ? '총 ' : ''}${e.repLo}~${e.repHi}회 · RIR${e.rir} · ${mmss(e.rest)}${e.lift ? ' · ' + esc(e.lift) : ''}</div></div>
-          <button class="iconb" onclick="App.moveExercise('${p.id}',${i},-1)">↑</button>
-          <button class="iconb" onclick="App.editExercise('${p.id}',${i})">✎</button>
-          <button class="iconb del" onclick="App.deleteExercise('${p.id}',${i})">✕</button>
-        </div>`).join('') || '<div class="emptybox">운동이 없습니다</div>';
-      html += `<div class="card">
-        <h2>
-          <span>${esc(p.title)}</span>
-          <div style="display:flex; gap:4px;">
-            <button class="pill blue" onclick="App.renameProgram('${p.id}')">이름변경</button>
-            <button class="pill red" onclick="App.deleteProgram('${p.id}')">삭제</button>
+    Store.s.programs.forEach(p => {
+      const exCount = p.items.length;
+      html += `
+        <div class="card">
+          <h2>${esc(p.title)}</h2>
+          <div class="muted">${esc(p.desc)}</div>
+          <div class="tiny" style="margin-top:4px;">포함된 운동: ${exCount}개</div>
+          <div class="btnrow" style="margin-top:12px;">
+            <button class="btn ghost sm" onclick="App.openProgramDetail('${p.id}')">이 루틴 편집하기</button>
+            <button class="btn danger sm" onclick="App.deleteProgram('${p.id}')">삭제</button>
           </div>
-        </h2>
-        <div class="muted" style="margin-bottom:8px;">${esc(p.desc)}</div>
-        ${items}
-        <div style="height:9px"></div>
-        <button class="btn ghost sm" onclick="App.addExercise('${p.id}')">＋ 운동 추가</button>
-      </div>`;
+        </div>
+      `;
     });
-    html += `<div class="card">
-      <button class="btn" onclick="App.createProgram()">➕ 새 루틴 템플릿 만들기</button>
-      <div style="height:12px"></div>
-      <button class="btn danger sm" onclick="App.resetProgram()">기본 템플릿으로 복원</button>
-    </div>`;
+    html += `
+      <div class="card">
+        <button class="btn" onclick="App.createProgram()">➕ 새 루틴 템플릿 만들기</button>
+        <div style="height:12px"></div>
+        <button class="btn danger sm" onclick="App.resetProgram()">기본 상/하체 템플릿으로 복원</button>
+      </div>`;
     el('viewProgram').innerHTML = html;
+  },
+
+  openProgramDetail(pId) {
+    this.editProgramId = pId;
+    this.render();
+    window.scrollTo(0, 0);
+  },
+
+  renderProgramDetail(pId) {
+    const p = Store.s.programs.find(x => x.id === pId);
+    if (!p) { this.editProgramId = null; return this.render(); }
+    
+    el('hSub').textContent = `루틴 편집: ${p.title}`;
+    const items = (p.items || []).map((e, i) => `
+      <div class="exitem">
+        <div class="iconb">${i + 1}</div>
+        <div class="g"><div class="n">${esc(e.name)}</div>
+          <div class="m">${e.type === 'cardio' ? `유산소 · ${e.targetMin}분` : `${e.sets}세트 · ${e.mode === 'restpause' ? '총 ' : ''}${e.repLo}~${e.repHi}회 · RIR${e.rir}`}</div></div>
+        <button class="iconb" onclick="App.moveExercise('${p.id}',${i},-1)">↑</button>
+        <button class="iconb" onclick="App.editExercise('${p.id}',${i})">✎</button>
+        <button class="iconb del" onclick="App.deleteExercise('${p.id}',${i})">✕</button>
+      </div>`).join('') || '<div class="emptybox">운동이 없습니다</div>';
+    
+    el('viewProgram').innerHTML = `
+      <div class="card">
+        <h2>${esc(p.title)} <button class="pill blue" onclick="App.renameProgram('${p.id}')">이름/설명 변경</button></h2>
+        <div class="muted">${esc(p.desc)}</div>
+        <div style="margin-top:16px;">${items}</div>
+        <div style="height:12px"></div>
+        <button class="btn ghost sm" onclick="App.addExercise('${p.id}')">＋ 이 루틴에 운동 추가</button>
+      </div>
+      <div class="card">
+        <button class="btn" onclick="App.editProgramId = null; App.render();">← 루틴 목록으로 돌아가기</button>
+      </div>
+    `;
   },
 
   createProgram() {
@@ -841,14 +886,16 @@ const App = {
 
   renameProgram(pId) {
     const p = Store.s.programs.find(x => x.id === pId);
-    const v = prompt('루틴 이름', p.title);
-    if (!v) return;
-    p.title = v.trim();
+    const t = prompt('루틴 이름', p.title);
+    if (!t) return;
+    const d = prompt('루틴 설명', p.desc);
+    p.title = t.trim();
+    p.desc = (d || '').trim();
     Store.save(); this.render();
   },
 
   deleteProgram(pId) {
-    if (!confirm('이 루틴 템플릿을 삭제할까요? (과거 기록은 남습니다)')) return;
+    if (!confirm('이 루틴 템플릿을 삭제할까요? (과거 완료 기록은 남습니다)')) return;
     Store.s.programs = Store.s.programs.filter(x => x.id !== pId);
     Store.save(); this.render();
   },
@@ -873,39 +920,62 @@ const App = {
   addExercise(pId) { this.exerciseForm(pId, -1); },
   editExercise(pId, i) { this.exerciseForm(pId, i); },
 
+  // 인라인 스크립트로 호출될 유산소/웨이트 토글 함수
+  toggleExType() {
+    const isCardio = el('fType').value === 'cardio';
+    el('weightFields').style.display = isCardio ? 'none' : 'block';
+    el('cardioFields').style.display = isCardio ? 'block' : 'none';
+  },
+
   exerciseForm(pId, idx) {
     const p = Store.s.programs.find(x => x.id === pId);
     const isNew = idx < 0;
-    const e = isNew ? ex({ name: '' }) : p.items[idx];
+    const e = isNew ? ex({ name: '', type: 'weight' }) : p.items[idx];
     const opt = (v, cur) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${v || '없음'}</option>`;
+    
     const html = `
+      <div class="field"><label>운동 종류</label>
+        <select id="fType" onchange="App.toggleExType()">
+          <option value="weight" ${e.type !== 'cardio' ? 'selected' : ''}>웨이트 트레이닝</option>
+          <option value="cardio" ${e.type === 'cardio' ? 'selected' : ''}>유산소 운동</option>
+        </select>
+      </div>
       <div class="field"><label>운동 이름</label>
-        <input id="fName" value="${esc(e.name)}" placeholder="예) 인클라인 덤벨 프레스"></div>
-      <div class="grid2">
-        <div class="field"><label>기구</label><select id="fEquip">
-          ${['바벨', '덤벨', '머신', '케이블', '맨몸'].map(v => opt(v, e.equip)).join('')}</select></div>
-        <div class="field"><label>메인 리프트 (e1RM 연동)</label><select id="fLift">
-          ${['', '스쿼트', '벤치프레스', '데드리프트'].map(v => opt(v, e.lift)).join('')}</select></div>
+        <input id="fName" value="${esc(e.name)}" placeholder="예) 인클라인 덤벨 프레스 또는 러닝머신"></div>
+      
+      <div id="cardioFields" style="display: ${e.type === 'cardio' ? 'block' : 'none'};">
+        <div class="field"><label>목표 시간 (분)</label>
+          <input id="fTargetMin" type="number" min="1" value="${e.targetMin}">
+        </div>
       </div>
-      <div class="grid3">
-        <div class="field"><label>세트</label><input id="fSets" type="number" min="1" max="10" value="${e.sets}"></div>
-        <div class="field"><label>반복 하한</label><input id="fLo" type="number" min="1" value="${e.repLo}"></div>
-        <div class="field"><label>반복 상한</label><input id="fHi" type="number" min="1" value="${e.repHi}"></div>
-      </div>
-      <div class="grid3">
-        <div class="field"><label>목표 RIR</label><select id="fRir">
-          ${[0, 0.5, 1, 1.5, 2, 2.5, 3, 4].map(v => `<option value="${v}" ${v === e.rir ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-        <div class="field"><label>휴식(초)</label><input id="fRest" type="number" min="0" step="15" value="${e.rest}"></div>
-        <div class="field"><label>방식</label><select id="fMode">
-          <option value="normal" ${e.mode === 'normal' ? 'selected' : ''}>일반</option>
-          <option value="restpause" ${e.mode === 'restpause' ? 'selected' : ''}>레스트포즈</option>
+
+      <div id="weightFields" style="display: ${e.type === 'cardio' ? 'none' : 'block'};">
+        <div class="grid2">
+          <div class="field"><label>기구</label><select id="fEquip">
+            ${['바벨', '덤벨', '머신', '케이블', '맨몸'].map(v => opt(v, e.equip)).join('')}</select></div>
+          <div class="field"><label>메인 리프트 (e1RM 연동)</label><select id="fLift">
+            ${['', '스쿼트', '벤치프레스', '데드리프트'].map(v => opt(v, e.lift)).join('')}</select></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>세트</label><input id="fSets" type="number" min="1" max="10" value="${e.sets}"></div>
+          <div class="field"><label>반복 하한</label><input id="fLo" type="number" min="1" value="${e.repLo}"></div>
+          <div class="field"><label>반복 상한</label><input id="fHi" type="number" min="1" value="${e.repHi}"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>목표 RIR</label><select id="fRir">
+            ${[0, 0.5, 1, 1.5, 2, 2.5, 3, 4].map(v => `<option value="${v}" ${v === e.rir ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+          <div class="field"><label>휴식(초)</label><input id="fRest" type="number" min="0" step="15" value="${e.rest}"></div>
+          <div class="field"><label>방식</label><select id="fMode">
+            <option value="normal" ${e.mode === 'normal' ? 'selected' : ''}>일반</option>
+            <option value="restpause" ${e.mode === 'restpause' ? 'selected' : ''}>레스트포즈</option>
+          </select></div>
+        </div>
+        <div class="field"><label>반올림 (메인 리프트만)</label><select id="fRound">
+          <option value="near" ${e.round === 'near' ? 'selected' : ''}>가까운 단위로</option>
+          <option value="floor" ${e.round === 'floor' ? 'selected' : ''}>내림 (백오프·기술 세트)</option>
         </select></div>
       </div>
-      <div class="field"><label>반올림 (메인 리프트만)</label><select id="fRound">
-        <option value="near" ${e.round === 'near' ? 'selected' : ''}>가까운 단위로</option>
-        <option value="floor" ${e.round === 'floor' ? 'selected' : ''}>내림 (백오프·기술 세트)</option>
-      </select></div>
-      <div class="btnrow">
+      <div class="btnrow" style="margin-top:16px;">
         <button class="btn ghost sm" onclick="closeModal()">취소</button>
         <button class="btn sm" onclick="App.saveExercise('${pId}',${idx})">저장</button>
       </div>`;
@@ -918,16 +988,23 @@ const App = {
     const e = this._draft;
     const name = g('fName').trim();
     if (!name) { toast('운동 이름을 입력하세요'); return; }
+    
     e.name = name;
-    e.equip = g('fEquip');
-    e.lift = g('fLift');
-    e.sets = Math.max(1, Math.min(10, +g('fSets') || 1));
-    e.repLo = Math.max(1, +g('fLo') || 1);
-    e.repHi = Math.max(e.repLo, +g('fHi') || e.repLo);
-    e.rir = +g('fRir');
-    e.rest = Math.max(0, +g('fRest') || 0);
-    e.mode = g('fMode');
-    e.round = g('fRound');
+    e.type = g('fType');
+    
+    if (e.type === 'cardio') {
+      e.targetMin = Math.max(1, +g('fTargetMin') || 30);
+    } else {
+      e.equip = g('fEquip');
+      e.lift = g('fLift');
+      e.sets = Math.max(1, Math.min(10, +g('fSets') || 1));
+      e.repLo = Math.max(1, +g('fLo') || 1);
+      e.repHi = Math.max(e.repLo, +g('fHi') || e.repLo);
+      e.rir = +g('fRir');
+      e.rest = Math.max(0, +g('fRest') || 0);
+      e.mode = g('fMode');
+      e.round = g('fRound');
+    }
     
     const p = Store.s.programs.find(x => x.id === pId);
     if (idx < 0) p.items.push(e);
@@ -937,9 +1014,9 @@ const App = {
   },
 
   resetProgram() {
-    if (!confirm('기본 템플릿으로 되돌릴까요? 기존 템플릿은 모두 지워집니다.')) return;
+    if (!confirm('기본 상/하체 템플릿 6개로 되돌릴까요? 기존 템플릿은 모두 지워집니다.')) return;
     Store.s.programs = defaultPrograms();
-    Store.save(); this.render(); toast('기본 템플릿 복원');
+    Store.save(); this.render(); toast('기본 템플릿 복원 완료');
   },
 
   /* ---------- 기록 ---------- */
@@ -966,11 +1043,18 @@ const App = {
         const nm = e ? e.name : '(삭제된 운동)';
         const done = (arr || []).filter(s => s && s.done);
         if (!done.length) return;
-        const reps = done.reduce((a, s) => a + (+s.reps || 0), 0);
-        const vol = done.reduce((a, s) => a + (+s.reps || 0) * (+s.w || 0), 0);
-        wkVol += vol; wkSets += done.length;
-        rows += `<tr><td style="text-align:left">${esc(nm)}</td>
-          <td>${done.length}</td><td>${reps}</td><td>${Math.round(vol).toLocaleString()}</td></tr>`;
+        
+        if (e && e.type === 'cardio') {
+          wkSets += 1;
+          rows += `<tr><td style="text-align:left">${esc(nm)} (유산소)</td>
+            <td>1</td><td>-</td><td>완료</td></tr>`;
+        } else {
+          const reps = done.reduce((a, s) => a + (+s.reps || 0), 0);
+          const vol = done.reduce((a, s) => a + (+s.reps || 0) * (+s.w || 0), 0);
+          wkVol += vol; wkSets += done.length;
+          rows += `<tr><td style="text-align:left">${esc(nm)}</td>
+            <td>${done.length}</td><td>${reps}</td><td>${Math.round(vol).toLocaleString()}</td></tr>`;
+        }
       });
       
       if (!rows) return;
@@ -1024,7 +1108,7 @@ const App = {
         ${this.toggle('vibrate', '완료 시 진동')}
         ${this.toggle('wakelock', '운동 중 화면 꺼짐 방지')}
         ${this.toggle('notify', '알림(백그라운드 복귀 시 표시)')}
-        <div class="field"><label>Zone2 유산소(분)</label><input type="number" value="${st.cardioMin}" onchange="App.setSetting('cardioMin',this.value)"></div>
+        <div class="field"><label>Zone2 기본 유산소 처방(분)</label><input type="number" value="${st.cardioMin}" onchange="App.setSetting('cardioMin',this.value)"></div>
         <button class="btn ghost sm" onclick="App.askNotify()">알림 권한 요청</button>
       </div>
 
